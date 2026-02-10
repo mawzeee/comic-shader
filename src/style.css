@@ -1,4 +1,38 @@
-@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@300;400;500&display=swap');
+/* ── Fonts ── */
+
+@font-face {
+  font-family: 'Bangers';
+  src: url('/fonts/Bangers-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Bebas Neue';
+  src: url('/fonts/BebasNeue-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── Reset ── */
 
 * {
   margin: 0;
@@ -10,17 +44,21 @@ html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #1a1a1a;
-  font-family: 'Inter', sans-serif;
+  background: #f5f0e8;
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 canvas#canvas {
   display: block;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
 }
 
-/* --- Overlay UI --- */
+/* ── Overlay ── */
 
 #overlay {
   position: fixed;
@@ -32,99 +70,318 @@ canvas#canvas {
   z-index: 10;
 }
 
-#header {
+/* ─────────────────────────────────────────────────────
+   HERO TITLE — This is the comic book cover.
+   Massive, centered, Bangers, ink-stroked, tilted.
+   It sits ON the scene like a printed title.
+   ───────────────────────────────────────────────────── */
+
+#hero-title {
   position: absolute;
-  top: 32px;
-  left: 36px;
-  pointer-events: auto;
+  top: 8%;
+  left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+  text-align: center;
+  pointer-events: none;
+  z-index: 5;
+  transition: opacity 0.25s ease;
 }
 
-#header h1 {
-  font-family: 'Bangers', cursive;
-  font-size: 52px;
+#hero-title.fade-out {
+  opacity: 0;
+}
+
+#title-text {
+  font-family: 'Bangers', Impact, sans-serif;
+  font-weight: 400;
+  font-size: clamp(64px, 10vw, 130px);
   color: #fff;
-  letter-spacing: 3px;
+  -webkit-text-stroke: 3px #111;
   text-shadow:
-    3px 3px 0 #1a1a1a,
-    -1px -1px 0 #1a1a1a,
-    1px -1px 0 #1a1a1a,
-    -1px 1px 0 #1a1a1a;
-  line-height: 1;
-  margin-bottom: 6px;
+    4px 4px 0 #111,
+    5px 5px 0 rgba(0, 0, 0, 0.15);
+  letter-spacing: 0.04em;
+  line-height: 0.9;
+  user-select: none;
 }
 
-#header p {
-  font-size: 13px;
-  color: rgba(255,255,255,0.55);
-  font-weight: 300;
-  max-width: 320px;
-  line-height: 1.5;
+#title-sub {
+  font-family: 'Bebas Neue', 'Arial Black', sans-serif;
+  font-size: clamp(12px, 1.6vw, 18px);
+  letter-spacing: 0.35em;
+  color: rgba(0, 0, 0, 0.45);
+  margin-top: 8px;
+  user-select: none;
 }
 
-/* Presets */
+/* Title pop on preset change */
+@keyframes titlePop {
+  0% { transform: translateX(-50%) rotate(-2deg) scale(0.92); opacity: 0; }
+  60% { transform: translateX(-50%) rotate(-1deg) scale(1.06); opacity: 1; }
+  100% { transform: translateX(-50%) rotate(-2deg) scale(1); opacity: 1; }
+}
+
+#hero-title.pop-in {
+  animation: titlePop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* ── Controls toggle: top-right ── */
+
+#controls-toggle {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  pointer-events: auto;
+  background: rgba(255, 255, 255, 0.7);
+  border: 2px solid #111;
+  color: #111;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 25;
+}
+
+#controls-toggle:hover {
+  transform: scale(1.1) rotate(30deg);
+  background: #fff;
+}
+
+#controls-toggle:active {
+  transform: scale(0.9);
+  transition-duration: 0.05s;
+}
+
+#controls-toggle.active {
+  background: #111;
+  color: #fff;
+  transform: rotate(90deg);
+}
+
+/* ── Controls drawer ── */
+
+#controls-drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 280px;
+  height: 100%;
+  pointer-events: auto;
+  background: rgba(245, 240, 232, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-left: 2px solid rgba(0, 0, 0, 0.1);
+  transform: translateX(100%);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 20;
+  padding: 72px 0 32px;
+  overflow-y: auto;
+}
+
+#controls-drawer.open {
+  transform: translateX(0);
+}
+
+#controls-drawer-inner {
+  width: 100%;
+}
+
+#controls-drawer .lil-gui.root {
+  position: static !important;
+  width: 100% !important;
+  max-height: none !important;
+  --background-color: transparent;
+  --widget-color: rgba(0, 0, 0, 0.06);
+  --focus-color: rgba(0, 0, 0, 0.1);
+  --number-color: #333;
+  --string-color: #333;
+  --title-background-color: rgba(0, 0, 0, 0.04);
+  --title-text-color: #555;
+  --text-color: #555;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 11px !important;
+}
+
+/* ─────────────────────────────────────────────────────
+   PRESET BAR — Bottom center, comic-bold.
+   Hard borders, solid fills, bounce physics.
+   ───────────────────────────────────────────────────── */
 
 #presets {
   position: absolute;
-  bottom: 36px;
-  left: 36px;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  max-width: 500px;
+  align-items: center;
+  gap: 4px;
   pointer-events: auto;
+  background: rgba(255, 255, 255, 0.85);
+  border: 2.5px solid #111;
+  border-radius: 50px;
+  padding: 5px;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.12);
 }
 
 .preset-btn {
-  background: rgba(255,255,255,0.1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.15);
-  color: #fff;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.5px;
+  position: relative;
+  background: transparent;
+  border: 2px solid transparent;
+  color: #555;
+  padding: 8px 18px;
+  font-family: 'Bebas Neue', 'Arial Black', sans-serif;
+  font-size: 15px;
+  letter-spacing: 0.08em;
   cursor: pointer;
-  transition: all 0.2s ease;
-  text-transform: uppercase;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  white-space: nowrap;
+  border-radius: 50px;
 }
 
 .preset-btn:hover {
-  background: rgba(255,255,255,0.2);
-  border-color: rgba(255,255,255,0.35);
+  color: #111;
+  background: rgba(0, 0, 0, 0.05);
+  transform: scale(1.06);
+}
+
+.preset-btn:active {
+  transform: scale(0.9);
+  transition-duration: 0.05s;
 }
 
 .preset-btn.active {
-  background: rgba(255,255,255,0.9);
-  color: #1a1a1a;
-  border-color: #fff;
+  color: #fff;
+  background: #111;
+  border-color: #111;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
 }
 
-/* Credits */
+.preset-btn.active:hover {
+  transform: scale(1.06);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.25);
+}
 
-#credits {
+.preset-btn.active:active {
+  transform: scale(0.92);
+  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.15);
+  transition-duration: 0.05s;
+}
+
+@keyframes presetPop {
+  0% { transform: scale(0.8); }
+  50% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+.preset-btn.pop {
+  animation: presetPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* ── Compare: bottom-left, inked badge ── */
+
+#compare {
   position: absolute;
-  bottom: 36px;
-  right: 36px;
-  text-align: right;
+  bottom: 34px;
+  left: 28px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.compare-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.15em;
+  color: rgba(0, 0, 0, 0.35);
+  transition: all 0.2s ease;
+}
+
+.compare-hint {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: rgba(0, 0, 0, 0.25);
+  border: 1.5px solid rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  padding: 2px 8px;
+  transition: all 0.15s ease;
+}
+
+#compare:hover .compare-label {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+#compare:hover .compare-hint {
+  border-color: rgba(0, 0, 0, 0.3);
+  color: rgba(0, 0, 0, 0.4);
+}
+
+#compare.active .compare-label {
+  color: #111;
+}
+
+#compare.active .compare-hint {
+  background: #111;
+  border-color: #111;
+  color: #fff;
+}
+
+/* ── Model switcher: bottom-right ── */
+
+#model-switcher {
+  position: absolute;
+  bottom: 34px;
+  right: 28px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   pointer-events: auto;
 }
 
-#credits a {
-  color: rgba(255,255,255,0.4);
-  text-decoration: none;
-  font-size: 11px;
-  font-weight: 300;
-  transition: color 0.2s;
+.model-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.15em;
+  color: rgba(0, 0, 0, 0.35);
 }
 
-#credits a:hover {
-  color: rgba(255,255,255,0.7);
+.model-name {
+  background: rgba(255, 255, 255, 0.85);
+  border: 2px solid #111;
+  color: #111;
+  padding: 6px 16px;
+  border-radius: 50px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
 }
 
-/* Reveal flash */
+.model-name:hover {
+  transform: scale(1.06);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.15);
+  background: #fff;
+}
+
+.model-name:active {
+  transform: scale(0.9);
+  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.1);
+  transition-duration: 0.05s;
+}
+
+/* ── Reveal flash ── */
 
 #flash {
   position: fixed;
@@ -143,49 +400,62 @@ canvas#canvas {
   opacity: 1;
 }
 
+/* ── Reduced motion ── */
+
 @media (prefers-reduced-motion: reduce) {
-  #flash {
-    transition: none;
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
+}
+
+/* ── Mobile ── */
+
+@media (max-width: 768px) {
+  #title-text {
+    -webkit-text-stroke: 2px #111;
+  }
+
+  #presets {
+    bottom: 20px;
+    padding: 4px;
+    gap: 2px;
+  }
+
   .preset-btn {
-    transition: none;
+    padding: 7px 12px;
+    font-size: 13px;
+  }
+
+  #compare {
+    bottom: 72px;
+    left: 20px;
+  }
+
+  #model-switcher {
+    bottom: 72px;
+    right: 20px;
+  }
+
+  #controls-toggle {
+    top: 20px;
+    right: 20px;
   }
 }
 
-/* Lens mode toggle */
+@media (max-width: 480px) {
+  .preset-btn {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
 
-#lens-mode {
-  position: absolute;
-  bottom: 36px;
-  right: 120px;
-  pointer-events: auto;
-  background: rgba(255,255,255,0.1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.15);
-  color: #fff;
-  padding: 8px 18px;
-  border-radius: 6px;
-  font-family: 'Bangers', cursive;
-  font-size: 14px;
-  letter-spacing: 1.5px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  user-select: none;
-}
+  #presets {
+    gap: 1px;
+    padding: 3px;
+  }
 
-#lens-mode:hover {
-  background: rgba(255,255,255,0.2);
-  border-color: rgba(255,255,255,0.35);
-}
-
-/* lil-gui override: move to right side, make smaller */
-.lil-gui.root {
-  position: fixed !important;
-  top: 32px !important;
-  right: 36px !important;
-  width: 240px !important;
-  max-height: calc(100vh - 100px) !important;
-  overflow-y: auto !important;
-  z-index: 20 !important;
+  #title-text {
+    -webkit-text-stroke: 1.5px #111;
+  }
 }

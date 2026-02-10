@@ -9,7 +9,6 @@ export class ComicPass extends Pass {
   private normalOverrideMaterial: THREE.MeshNormalMaterial;
   private scene: THREE.Scene;
   private camera: THREE.PerspectiveCamera;
-  private resizeHandler: () => void;
 
   constructor(scene: THREE.Scene, camera: THREE.PerspectiveCamera) {
     super();
@@ -17,29 +16,21 @@ export class ComicPass extends Pass {
     this.scene = scene;
     this.camera = camera;
 
-    // Normal buffer render target
-    this.normalRenderTarget = new THREE.WebGLRenderTarget(
-      window.innerWidth,
-      window.innerHeight,
-      {
-        minFilter: THREE.NearestFilter,
-        magFilter: THREE.NearestFilter,
-        type: THREE.HalfFloatType,
-      }
-    );
+    // Start with a 1x1 normal buffer — will be resized on first render
+    this.normalRenderTarget = new THREE.WebGLRenderTarget(1, 1, {
+      minFilter: THREE.NearestFilter,
+      magFilter: THREE.NearestFilter,
+      type: THREE.HalfFloatType,
+    });
 
     this.normalOverrideMaterial = new THREE.MeshNormalMaterial();
 
-    // Shader uniforms and material
     this.uniforms = createComicUniforms();
     this.uniforms.uCameraNear.value = camera.near;
     this.uniforms.uCameraFar.value = camera.far;
 
     const material = createComicMaterial(this.uniforms);
     this.fsQuad = new FullScreenQuad(material);
-
-    this.resizeHandler = () => this.onResize();
-    window.addEventListener('resize', this.resizeHandler);
   }
 
   render(
@@ -47,7 +38,15 @@ export class ComicPass extends Pass {
     writeBuffer: THREE.WebGLRenderTarget,
     readBuffer: THREE.WebGLRenderTarget
   ) {
-    // Render normals to our target
+    // Match normal buffer size to the actual readBuffer (DPR-aware)
+    if (
+      this.normalRenderTarget.width !== readBuffer.width ||
+      this.normalRenderTarget.height !== readBuffer.height
+    ) {
+      this.normalRenderTarget.setSize(readBuffer.width, readBuffer.height);
+    }
+
+    // Render normals
     const prevOverride = this.scene.overrideMaterial;
     const prevBackground = this.scene.background;
 
@@ -78,14 +77,7 @@ export class ComicPass extends Pass {
     this.fsQuad.render(renderer);
   }
 
-  private onResize() {
-    const w = window.innerWidth;
-    const h = window.innerHeight;
-    this.normalRenderTarget.setSize(w, h);
-  }
-
   dispose() {
-    window.removeEventListener('resize', this.resizeHandler);
     this.normalRenderTarget.dispose();
     this.normalOverrideMaterial.dispose();
     this.fsQuad.material.dispose();
