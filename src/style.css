@@ -1,37 +1,3 @@
-/* ── Fonts ── */
-
-@font-face {
-  font-family: 'Bangers';
-  src: url('/fonts/Bangers-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Bebas Neue';
-  src: url('/fonts/BebasNeue-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Inter';
-  src: url('/fonts/Inter-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Inter';
-  src: url('/fonts/Inter-Medium.woff2') format('woff2');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
 /* ── Reset ── */
 
 * {
@@ -44,8 +10,8 @@ html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #f5f0e8;
-  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  background: #0c0818;
+  font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -71,16 +37,15 @@ canvas#canvas {
 }
 
 /* ─────────────────────────────────────────────────────
-   HERO TITLE — This is the comic book cover.
-   Massive, centered, Bangers, ink-stroked, tilted.
-   It sits ON the scene like a printed title.
+   HERO TITLE — JetBrains Mono 600. Code-bold.
+   The preset name as a confident, technical statement.
    ───────────────────────────────────────────────────── */
 
 #hero-title {
   position: absolute;
-  top: 8%;
+  top: 32px;
   left: 50%;
-  transform: translateX(-50%) rotate(-2deg);
+  transform: translateX(-50%);
   text-align: center;
   pointer-events: none;
   z-index: 5;
@@ -92,75 +57,82 @@ canvas#canvas {
 }
 
 #title-text {
-  font-family: 'Bangers', Impact, sans-serif;
-  font-weight: 400;
-  font-size: clamp(64px, 10vw, 130px);
-  color: #fff;
-  -webkit-text-stroke: 3px #111;
-  text-shadow:
-    4px 4px 0 #111,
-    5px 5px 0 rgba(0, 0, 0, 0.15);
-  letter-spacing: 0.04em;
-  line-height: 0.9;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  font-size: 28px;
+  color: rgba(255, 255, 255, 0.88);
+  letter-spacing: -0.03em;
+  line-height: 1;
   user-select: none;
+  text-transform: uppercase;
 }
 
 #title-sub {
-  font-family: 'Bebas Neue', 'Arial Black', sans-serif;
-  font-size: clamp(12px, 1.6vw, 18px);
-  letter-spacing: 0.35em;
-  color: rgba(0, 0, 0, 0.45);
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 300;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.22);
   margin-top: 8px;
   user-select: none;
 }
 
-/* Title pop on preset change */
+/* Title transition */
 @keyframes titlePop {
-  0% { transform: translateX(-50%) rotate(-2deg) scale(0.92); opacity: 0; }
-  60% { transform: translateX(-50%) rotate(-1deg) scale(1.06); opacity: 1; }
-  100% { transform: translateX(-50%) rotate(-2deg) scale(1); opacity: 1; }
+  0% { transform: translateX(-50%) translateY(4px); opacity: 0; }
+  100% { transform: translateX(-50%) translateY(0); opacity: 1; }
 }
 
 #hero-title.pop-in {
-  animation: titlePop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  animation: titlePop 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
 /* ── Controls toggle: top-right ── */
 
 #controls-toggle {
   position: absolute;
-  top: 24px;
-  right: 28px;
+  top: 28px;
+  right: 24px;
   pointer-events: auto;
-  background: rgba(255, 255, 255, 0.7);
-  border: 2px solid #111;
-  color: #111;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
-  padding: 8px;
-  border-radius: 50%;
-  width: 38px;
-  height: 38px;
+  padding: 0;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: all 0.15s ease;
   z-index: 25;
 }
 
+#controls-toggle svg {
+  width: 14px;
+  height: 14px;
+}
+
 #controls-toggle:hover {
-  transform: scale(1.1) rotate(30deg);
-  background: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 #controls-toggle:active {
-  transform: scale(0.9);
-  transition-duration: 0.05s;
+  background: rgba(255, 255, 255, 0.04);
+  transform: scale(0.94);
+  transition-duration: 0.06s;
 }
 
 #controls-toggle.active {
-  background: #111;
-  color: #fff;
-  transform: rotate(90deg);
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.8);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
 /* ── Controls drawer ── */
@@ -172,12 +144,12 @@ canvas#canvas {
   width: 280px;
   height: 100%;
   pointer-events: auto;
-  background: rgba(245, 240, 232, 0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-left: 2px solid rgba(0, 0, 0, 0.1);
+  background: rgba(10, 12, 22, 0.8);
+  backdrop-filter: blur(60px) saturate(180%);
+  -webkit-backdrop-filter: blur(60px) saturate(180%);
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
   transform: translateX(100%);
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
   z-index: 20;
   padding: 72px 0 32px;
   overflow-y: auto;
@@ -196,20 +168,20 @@ canvas#canvas {
   width: 100% !important;
   max-height: none !important;
   --background-color: transparent;
-  --widget-color: rgba(0, 0, 0, 0.06);
-  --focus-color: rgba(0, 0, 0, 0.1);
-  --number-color: #333;
-  --string-color: #333;
-  --title-background-color: rgba(0, 0, 0, 0.04);
-  --title-text-color: #555;
-  --text-color: #555;
-  font-family: 'Inter', sans-serif !important;
+  --widget-color: rgba(255, 255, 255, 0.05);
+  --focus-color: rgba(255, 255, 255, 0.1);
+  --number-color: rgba(255, 255, 255, 0.6);
+  --string-color: rgba(255, 255, 255, 0.6);
+  --title-background-color: rgba(255, 255, 255, 0.02);
+  --title-text-color: rgba(255, 255, 255, 0.3);
+  --text-color: rgba(255, 255, 255, 0.4);
+  font-family: 'JetBrains Mono', monospace !important;
   font-size: 11px !important;
 }
 
 /* ─────────────────────────────────────────────────────
-   PRESET BAR — Bottom center, comic-bold.
-   Hard borders, solid fills, bounce physics.
+   PRESET BAR — Segmented control. Mono labels.
+   Fixed-width chars create natural rhythm.
    ───────────────────────────────────────────────────── */
 
 #presets {
@@ -219,75 +191,76 @@ canvas#canvas {
   transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 0;
   pointer-events: auto;
-  background: rgba(255, 255, 255, 0.85);
-  border: 2.5px solid #111;
-  border-radius: 50px;
-  padding: 5px;
-  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  padding: 3px;
 }
 
 .preset-btn {
   position: relative;
   background: transparent;
-  border: 2px solid transparent;
-  color: #555;
-  padding: 8px 18px;
-  font-family: 'Bebas Neue', 'Arial Black', sans-serif;
-  font-size: 15px;
-  letter-spacing: 0.08em;
+  border: none;
+  color: rgba(255, 255, 255, 0.32);
+  padding: 6px 13px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0.02em;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: color 0.15s ease, background 0.15s ease;
   white-space: nowrap;
-  border-radius: 50px;
+  border-radius: 7px;
+  text-transform: uppercase;
 }
 
 .preset-btn:hover {
-  color: #111;
-  background: rgba(0, 0, 0, 0.05);
-  transform: scale(1.06);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .preset-btn:active {
-  transform: scale(0.9);
-  transition-duration: 0.05s;
+  opacity: 0.7;
+  transition-duration: 0.04s;
 }
 
 .preset-btn.active {
-  color: #fff;
-  background: #111;
-  border-color: #111;
-  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
+  color: rgba(0, 0, 0, 0.82);
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.15),
+    0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 .preset-btn.active:hover {
-  transform: scale(1.06);
-  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.25);
+  background: #fff;
 }
 
 .preset-btn.active:active {
-  transform: scale(0.92);
-  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.15);
-  transition-duration: 0.05s;
+  opacity: 0.85;
+  transition-duration: 0.04s;
 }
 
 @keyframes presetPop {
-  0% { transform: scale(0.8); }
-  50% { transform: scale(1.12); }
+  0% { transform: scale(0.96); }
+  60% { transform: scale(1.02); }
   100% { transform: scale(1); }
 }
 
 .preset-btn.pop {
-  animation: presetPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: presetPop 0.2s ease-out;
 }
 
-/* ── Compare: bottom-left, inked badge ── */
+/* ── Compare: bottom-left ── */
 
 #compare {
   position: absolute;
-  bottom: 34px;
-  left: 28px;
+  bottom: 32px;
+  left: 24px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -298,50 +271,54 @@ canvas#canvas {
 }
 
 .compare-label {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 14px;
-  letter-spacing: 0.15em;
-  color: rgba(0, 0, 0, 0.35);
-  transition: all 0.2s ease;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 400;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.25);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  transition: color 0.15s ease;
 }
 
 .compare-hint {
-  font-family: 'Inter', sans-serif;
+  font-family: 'JetBrains Mono', monospace;
   font-weight: 500;
   font-size: 9px;
   letter-spacing: 0.04em;
-  color: rgba(0, 0, 0, 0.25);
-  border: 1.5px solid rgba(0, 0, 0, 0.15);
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 4px;
-  padding: 2px 8px;
-  transition: all 0.15s ease;
+  padding: 2px 6px;
+  transition: all 0.12s ease;
 }
 
 #compare:hover .compare-label {
-  color: rgba(0, 0, 0, 0.6);
+  color: rgba(255, 255, 255, 0.45);
 }
 
 #compare:hover .compare-hint {
-  border-color: rgba(0, 0, 0, 0.3);
-  color: rgba(0, 0, 0, 0.4);
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.35);
 }
 
 #compare.active .compare-label {
-  color: #111;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 #compare.active .compare-hint {
-  background: #111;
-  border-color: #111;
-  color: #fff;
+  background: rgba(255, 255, 255, 0.85);
+  border-color: transparent;
+  color: rgba(0, 0, 0, 0.7);
 }
 
 /* ── Model switcher: bottom-right ── */
 
 #model-switcher {
   position: absolute;
-  bottom: 34px;
-  right: 28px;
+  bottom: 32px;
+  right: 24px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -349,36 +326,41 @@ canvas#canvas {
 }
 
 .model-label {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 14px;
-  letter-spacing: 0.15em;
-  color: rgba(0, 0, 0, 0.35);
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 400;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.25);
 }
 
 .model-name {
-  background: rgba(255, 255, 255, 0.85);
-  border: 2px solid #111;
-  color: #111;
-  padding: 6px 16px;
-  border-radius: 50px;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 14px;
-  letter-spacing: 0.08em;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+  padding: 6px 13px;
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.15s ease;
 }
 
 .model-name:hover {
-  transform: scale(1.06);
-  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.15);
-  background: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.8);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .model-name:active {
-  transform: scale(0.9);
-  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.1);
-  transition-duration: 0.05s;
+  background: rgba(255, 255, 255, 0.03);
+  transform: scale(0.96);
+  transition-duration: 0.06s;
 }
 
 /* ── Reveal flash ── */
@@ -389,7 +371,7 @@ canvas#canvas {
   left: 0;
   width: 100%;
   height: 100%;
-  background: #fff;
+  background: #0c0818;
   z-index: 100;
   opacity: 0;
   pointer-events: none;
@@ -413,49 +395,51 @@ canvas#canvas {
 /* ── Mobile ── */
 
 @media (max-width: 768px) {
+  #hero-title {
+    top: 24px;
+  }
+
   #title-text {
-    -webkit-text-stroke: 2px #111;
+    font-size: 22px;
+  }
+
+  #title-sub {
+    font-size: 9px;
   }
 
   #presets {
     bottom: 20px;
-    padding: 4px;
-    gap: 2px;
+    padding: 2px;
   }
 
   .preset-btn {
-    padding: 7px 12px;
-    font-size: 13px;
+    padding: 5px 10px;
+    font-size: 10px;
   }
 
   #compare {
-    bottom: 72px;
+    bottom: 62px;
     left: 20px;
   }
 
   #model-switcher {
-    bottom: 72px;
+    bottom: 62px;
     right: 20px;
   }
 
   #controls-toggle {
-    top: 20px;
+    top: 24px;
     right: 20px;
   }
 }
 
 @media (max-width: 480px) {
   .preset-btn {
-    padding: 6px 8px;
-    font-size: 11px;
-  }
-
-  #presets {
-    gap: 1px;
-    padding: 3px;
+    padding: 4px 7px;
+    font-size: 9px;
   }
 
   #title-text {
-    -webkit-text-stroke: 1.5px #111;
+    font-size: 18px;
   }
 }

@@ -3,12 +3,14 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { Engine } from './engine/Engine';
 import { ComicScene } from './comic/ComicScene';
 import { ComicPass } from './comic/ComicPass';
+import { ComicEnvironment } from './comic/ComicEnvironment';
 import GUI from 'lil-gui';
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 
 const engine = new Engine(canvas);
 const comicScene = new ComicScene(engine.scene);
+const comicEnvironment = new ComicEnvironment(engine.scene);
 const comicPass = new ComicPass(engine.scene, engine.camera);
 comicPass.renderToScreen = true;
 engine.addPass(comicPass);
@@ -32,10 +34,10 @@ const presets: Preset[] = [
   {
     name: 'Comic Book',
     values: {
-      uOutlineThickness: 1.2, uOutlineThreshold: 0.45,
-      uCelBands: 4, uHalftoneSize: 5, uHalftoneAngle: 0.52,
-      uSaturationBoost: 0.4, uWobbleAmount: 2.0, uWobbleFreq: 12,
-      uCmykOffset: 2.5, uPaperStrength: 0.4,
+      uOutlineThickness: 1.4, uOutlineThreshold: 0.4,
+      uCelBands: 4, uHalftoneSize: 6, uHalftoneAngle: 0.52,
+      uSaturationBoost: 0.75, uWobbleAmount: 2.5, uWobbleFreq: 12,
+      uCmykOffset: 3.0, uPaperStrength: 0.45,
       uEnableOutlines: 1, uEnableCelShading: 1, uEnableHalftone: 1,
       uEnableWobble: 1, uEnableCmyk: 1, uEnablePaper: 1,
     },
@@ -501,23 +503,27 @@ window.addEventListener('touchmove', (e) => {
 window.addEventListener('touchend', () => { lensActive = false; }, { passive: true });
 window.addEventListener('touchcancel', () => { lensActive = false; }, { passive: true });
 
-// ─── Auto-orbit camera ──────────────────────────────
+// ─── Auto-orbit camera (smooth pause/resume) ────────
 
-let autoOrbit = true;
+let orbitAngle = 0;
+let orbitSpeed = 1.0;
+let orbitBobPhase = 0;
+let orbitDriftPhase = 0;
+let userDragging = false;
 
-engine.controls.addEventListener('start', () => {
-  autoOrbit = false;
-});
+engine.controls.addEventListener('start', () => { userDragging = true; });
+engine.controls.addEventListener('end', () => { userDragging = false; });
 
 // ─── Cursor parallax (subtle camera offset) ─────────
 
-const baseCameraTarget = new THREE.Vector3(0, 1.5, 0);
+const baseCameraTarget = new THREE.Vector3(0, 1.8, 0);
 const parallaxStrength = 0.03; // ~2-3 degrees max
 
 // ─── Render loop ─────────────────────────────────────
 
 engine.start((dt) => {
   comicScene.update(dt);
+  comicEnvironment.update(dt);
   const safeDt = Math.min(Math.max(dt, 0.001), 0.05);
 
   // Mouse follow
@@ -557,24 +563,43 @@ engine.start((dt) => {
   }
   u.uLensRadius.value = currentLensRadius;
 
-  // Camera orbit
-  if (autoOrbit) {
-    const t = performance.now() * 0.001;
-    const radius = 9;
-    const angle = t * 0.12 + Math.sin(t * 0.037) * 0.15;
-    engine.camera.position.x = Math.sin(angle) * radius;
-    engine.camera.position.z = Math.cos(angle) * radius;
-    engine.camera.position.y = 4 + Math.sin(t * 0.08) * 0.4 + Math.sin(t * 0.031) * 0.2;
-  }
+  // Camera orbit — smooth pause on hold/drag, resume on release
+  const orbitPaused = lensActive || userDragging;
+  const orbitTargetSpeed = orbitPaused ? 0 : 1;
+  const orbitLerpRate = orbitPaused ? 4.0 : 1.8;
+  orbitSpeed += (orbitTargetSpeed - orbitSpeed) * (1 - Math.exp(-orbitLerpRate * safeDt));
 
-  // Cursor parallax — subtle offset on camera target
-  const px = (mousePos.x - 0.5) * parallaxStrength;
-  const py = (mousePos.y - 0.5) * parallaxStrength;
-  engine.camera.lookAt(
-    baseCameraTarget.x + px * 10,
-    baseCameraTarget.y + py * 6,
-    baseCameraTarget.z
-  );
+  // Advance orbit phases
+  const baseOrbitSpeed = 0.12;
+  orbitAngle += baseOrbitSpeed * orbitSpeed * safeDt;
+  orbitDriftPhase += 0.037 * orbitSpeed * safeDt;
+  orbitBobPhase += orbitSpeed * safeDt;
+
+  if (!lensActive && !userDragging && orbitSpeed > 0.01) {
+    // Auto-orbit: blend camera toward orbit path
+    const radius = 9;
+    const angle = orbitAngle + Math.sin(orbitDriftPhase) * 0.15;
+    const orbitX = Math.sin(angle) * radius;
+    const orbitZ = Math.cos(angle) * radius;
+    const orbitY = 5.2 + Math.sin(orbitBobPhase * 0.08) * 0.3 + Math.sin(orbitBobPhase * 0.031) * 0.15;
+
+    const blend = 1 - Math.exp(-8 * orbitSpeed * safeDt);
+    engine.camera.position.x += (orbitX - engine.camera.position.x) * blend;
+    engine.camera.position.z += (orbitZ - engine.camera.position.z) * blend;
+    engine.camera.position.y += (orbitY - engine.camera.position.y) * blend;
+
+    // Parallax lookAt
+    const px = (mousePos.x - 0.5) * parallaxStrength;
+    const py = (mousePos.y - 0.5) * parallaxStrength;
+    engine.camera.lookAt(
+      baseCameraTarget.x + px * 10,
+      baseCameraTarget.y + py * 6,
+      baseCameraTarget.z
+    );
+  } else {
+    // Paused: OrbitControls drives camera. Sync orbit angle for seamless resume.
+    orbitAngle = Math.atan2(engine.camera.position.x, engine.camera.position.z);
+  }
 
   // Render: composer (shader) or direct (raw 3D for compare)
   if (shaderEnabled) {

@@ -15,9 +15,9 @@ export class ComicScene {
   }
 
   private createGround() {
-    const geo = new THREE.PlaneGeometry(30, 30);
+    const geo = new THREE.PlaneGeometry(80, 80);
     const mat = new THREE.MeshStandardMaterial({
-      color: 0xe8dfd0,
+      color: 0x0e0a20,
       roughness: 0.95,
       metalness: 0.0,
     });
@@ -28,10 +28,10 @@ export class ComicScene {
   }
 
   private createShapes() {
-    // Hero: Large torus knot — glossy lacquered vinyl with clearcoat
+    // Hero: Large torus knot — deep vermilion red, glossy
     const heroGeo = new THREE.TorusKnotGeometry(1.1, 0.38, 200, 40, 2, 3);
     const heroMat = new THREE.MeshPhysicalMaterial({
-      color: 0xd01818,
+      color: 0xc41a1a,
       roughness: 0.15,
       metalness: 0.0,
       clearcoat: 0.8,
@@ -44,39 +44,39 @@ export class ComicScene {
     this.group.add(hero);
     this.objects.push(hero);
 
-    // Sphere — mirror-smooth billiard ball
+    // Sphere — warm gold, smooth
     const sphereGeo = new THREE.SphereGeometry(0.85, 64, 64);
     const sphereMat = new THREE.MeshStandardMaterial({
-      color: 0x1a44bb,
+      color: 0xd4940a,
       roughness: 0.08,
-      metalness: 0.0,
+      metalness: 0.05,
     });
     const sphere = new THREE.Mesh(sphereGeo, sphereMat);
-    sphere.position.set(-2.8, 0.85, 1.5);
+    sphere.position.set(-2.2, 0.85, 1.8);
     sphere.castShadow = true;
     sphere.receiveShadow = true;
     this.group.add(sphere);
     this.objects.push(sphere);
 
-    // Dodecahedron — chalky matte
+    // Dodecahedron — coral, chalky matte
     const dodecGeo = new THREE.DodecahedronGeometry(0.75);
     const dodecMat = new THREE.MeshStandardMaterial({
-      color: 0xf09010,
+      color: 0xe04e28,
       roughness: 0.85,
       metalness: 0.0,
       flatShading: true,
     });
     const dodec = new THREE.Mesh(dodecGeo, dodecMat);
-    dodec.position.set(2.6, 0.85, 1.8);
+    dodec.position.set(2.2, 0.85, 1.5);
     dodec.castShadow = true;
     dodec.receiveShadow = true;
     this.group.add(dodec);
     this.objects.push(dodec);
 
-    // Tall cylinder — satin semi-gloss pillar
+    // Tall cylinder — burnt sienna, satin
     const cylGeo = new THREE.CylinderGeometry(0.4, 0.5, 2.4, 32);
     const cylMat = new THREE.MeshStandardMaterial({
-      color: 0x18994a,
+      color: 0xb54020,
       roughness: 0.45,
       metalness: 0.0,
     });
@@ -87,12 +87,12 @@ export class ComicScene {
     this.group.add(cyl);
     this.objects.push(cyl);
 
-    // Torus — chrome metallic ring
+    // Torus — hot rose / magenta, metallic
     const torusGeo = new THREE.TorusGeometry(0.6, 0.2, 32, 64);
     const torusMat = new THREE.MeshStandardMaterial({
-      color: 0xdd3399,
+      color: 0xcc2870,
       roughness: 0.2,
-      metalness: 0.6,
+      metalness: 0.5,
     });
     const torus = new THREE.Mesh(torusGeo, torusMat);
     torus.position.set(1.5, 1.8, 2.8);
@@ -102,16 +102,16 @@ export class ComicScene {
     this.group.add(torus);
     this.objects.push(torus);
 
-    // Small icosahedron — rough matte stone
+    // Small icosahedron — amber, rough matte
     const icoGeo = new THREE.IcosahedronGeometry(0.45, 0);
     const icoMat = new THREE.MeshStandardMaterial({
-      color: 0xff5522,
+      color: 0xcc6a08,
       roughness: 0.95,
       metalness: 0.0,
       flatShading: true,
     });
     const ico = new THREE.Mesh(icoGeo, icoMat);
-    ico.position.set(3.2, 0.5, -0.5);
+    ico.position.set(2.8, 0.5, 0.2);
     ico.castShadow = true;
     ico.receiveShadow = true;
     this.group.add(ico);
@@ -119,8 +119,8 @@ export class ComicScene {
   }
 
   private createLights() {
-    // Key light — dramatic, tighter shadow bounds for higher resolution
-    const dirLight = new THREE.DirectionalLight(0xfff5e0, 3.5);
+    // Key light — warm, dramatic
+    const dirLight = new THREE.DirectionalLight(0xffe0c0, 3.8);
     dirLight.position.set(4, 8, 3);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 2048;
@@ -136,17 +136,17 @@ export class ComicScene {
     dirLight.shadow.radius = 3;
     this.group.add(dirLight);
 
-    // Hemisphere light — sky blue / ground brown for natural ambient
-    const hemiLight = new THREE.HemisphereLight(0x80b0e0, 0x604020, 0.7);
+    // Hemisphere — indigo sky / deep warm ground
+    const hemiLight = new THREE.HemisphereLight(0x4030a0, 0x402010, 0.6);
     this.group.add(hemiLight);
 
-    // Fill light — cool toned, from opposite side
-    const fillLight = new THREE.DirectionalLight(0xb0c0e0, 0.8);
+    // Fill light — cool violet, from opposite side
+    const fillLight = new THREE.DirectionalLight(0x8070c0, 0.9);
     fillLight.position.set(-5, 6, -3);
     this.group.add(fillLight);
 
-    // Rim light — warm, stronger edge separation
-    const rimLight = new THREE.DirectionalLight(0xffe8d0, 1.2);
+    // Rim light — warm amber, stronger edge separation
+    const rimLight = new THREE.DirectionalLight(0xffc080, 1.4);
     rimLight.position.set(-2, 3, -6);
     this.group.add(rimLight);
   }

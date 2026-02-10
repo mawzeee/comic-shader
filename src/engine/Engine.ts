@@ -31,7 +31,8 @@ export class Engine {
 
     // Scene
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xf5f0e8);
+    this.scene.background = new THREE.Color(0x0c0818);
+    this.scene.fog = new THREE.FogExp2(0x0c0818, 0.032);
 
     // Environment map
     const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
@@ -49,13 +50,17 @@ export class Engine {
       0.1,
       100
     );
-    this.camera.position.set(5, 4, 7);
+    this.camera.position.set(5, 5.2, 7);
 
-    // Controls
+    // Controls — horizontal rotation only, locked distance/height
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.05;
-    this.controls.target.set(0, 1.5, 0);
+    this.controls.target.set(0, 1.8, 0);
+    this.controls.enableZoom = false;
+    this.controls.enablePan = false;
+    this.controls.minPolarAngle = 1.0;
+    this.controls.maxPolarAngle = 1.35;
     this.controls.update();
 
     // Render target at DEVICE pixel resolution, with depth texture baked in
