@@ -9,36 +9,83 @@ void main() {
 `;
 
 const comicFrag = /* glsl */ `
+// Shared scene data
 uniform sampler2D uDiffuse;
 uniform sampler2D uNormalBuffer;
 uniform sampler2D uDepthBuffer;
 uniform vec2 uResolution;
 uniform float uCameraNear;
 uniform float uCameraFar;
+uniform float uTime;
+uniform vec2 uMouse;
+
+// Main style
 uniform float uOutlineThickness;
 uniform float uOutlineThreshold;
 uniform float uCelBands;
 uniform float uHalftoneSize;
 uniform float uHalftoneAngle;
 uniform float uSaturationBoost;
-uniform float uEnableOutlines;
-uniform float uEnableCelShading;
-uniform float uEnableHalftone;
-
-// New wow uniforms
-uniform float uTime;
 uniform float uWobbleAmount;
 uniform float uWobbleFreq;
 uniform float uCmykOffset;
-uniform float uEnableCmyk;
-uniform float uEnableWobble;
-uniform float uEnablePaper;
 uniform float uPaperStrength;
+uniform float uEnableOutlines;
+uniform float uEnableCelShading;
+uniform float uEnableHalftone;
+uniform float uEnableWobble;
+uniform float uEnableCmyk;
+uniform float uEnablePaper;
+
+// Lens style
+uniform float uLOutlineThickness;
+uniform float uLOutlineThreshold;
+uniform float uLCelBands;
+uniform float uLHalftoneSize;
+uniform float uLHalftoneAngle;
+uniform float uLSaturationBoost;
+uniform float uLWobbleAmount;
+uniform float uLWobbleFreq;
+uniform float uLCmykOffset;
+uniform float uLPaperStrength;
+uniform float uLEnableOutlines;
+uniform float uLEnableCelShading;
+uniform float uLEnableHalftone;
+uniform float uLEnableWobble;
+uniform float uLEnableCmyk;
+uniform float uLEnablePaper;
+
+// Lens geometry
+uniform float uLensRadius;
+uniform float uLensSmooth;
+uniform vec2 uMouseVel;
 
 in vec2 vUv;
 out vec4 fragColor;
 
-// --- Noise for wobble + paper ---
+// ─── Style parameters ────────────────────────────────
+
+struct Style {
+  float outlineThickness;
+  float outlineThreshold;
+  float celBands;
+  float halftoneSize;
+  float halftoneAngle;
+  float saturationBoost;
+  float wobbleAmount;
+  float wobbleFreq;
+  float cmykOffset;
+  float paperStrength;
+  float enableOutlines;
+  float enableCelShading;
+  float enableHalftone;
+  float enableWobble;
+  float enableCmyk;
+  float enablePaper;
+};
+
+// ─── Noise ───────────────────────────────────────────
+
 float hash(vec2 p) {
   vec3 p3 = fract(vec3(p.xyx) * 0.1031);
   p3 += dot(p3, p3.yzx + 33.33);
@@ -68,6 +115,8 @@ float fbm(vec2 p) {
   return v;
 }
 
+// ─── Utilities ───────────────────────────────────────
+
 float linearizeDepth(float d) {
   float z = d * 2.0 - 1.0;
   return (2.0 * uCameraNear * uCameraFar) /
@@ -85,6 +134,8 @@ float halftonePattern(vec2 fc, float grid, float ang, float rad) {
   vec2 cell = mod(r, grid) - grid * 0.5;
   return 1.0 - smoothstep(rad - 1.0, rad + 1.0, length(cell));
 }
+
+// ─── Color conversion ────────────────────────────────
 
 vec3 rgb2hsv(vec3 c) {
   float cMax = max(c.r, max(c.g, c.b));
@@ -124,7 +175,6 @@ vec3 hsv2rgb(vec3 c) {
   return vec3(v, p, q);
 }
 
-// --- RGB to CMYK and back ---
 vec4 rgb2cmyk(vec3 rgb) {
   float k = 1.0 - max(rgb.r, max(rgb.g, rgb.b));
   if (k >= 1.0) return vec4(0.0, 0.0, 0.0, 1.0);
@@ -144,66 +194,60 @@ vec3 cmyk2rgb(vec4 cmyk) {
   );
 }
 
-void main() {
-  vec2 texel = 1.0 / uResolution;
+// ─── Effect pipeline ─────────────────────────────────
 
-  // --- Hand-drawn wobble: perturb UVs for all subsequent reads ---
-  vec2 uv = vUv;
-  if (uEnableWobble > 0.5) {
-    vec2 noiseCoord = vUv * uWobbleFreq + uTime * 0.8;
+vec3 applyStyle(vec2 baseUv, vec2 texel, Style s) {
+  vec2 uv = baseUv;
+
+  // Hand-drawn wobble: perturb UVs for all subsequent reads
+  if (s.enableWobble > 0.5) {
+    vec2 noiseCoord = baseUv * s.wobbleFreq + uTime * 0.8;
     float wx = (noise(noiseCoord) - 0.5) * 2.0;
     float wy = (noise(noiseCoord + vec2(43.0, 17.0)) - 0.5) * 2.0;
-    uv += vec2(wx, wy) * texel * uWobbleAmount;
+    uv += vec2(wx, wy) * texel * s.wobbleAmount;
   }
 
   vec3 color = texture(uDiffuse, uv).rgb;
 
-  // --- Cel shading ---
-  if (uEnableCelShading > 0.5) {
+  // Cel shading
+  if (s.enableCelShading > 0.5) {
     float l = luma(color);
-    // Quantize but keep darkest band at ~15% brightness, not black
-    float bands = uCelBands;
+    float bands = s.celBands;
     float qv = (floor(l * bands) + 0.5) / bands;
-    // Lift shadows: remap from [0,1] to [0.12, 1]
     qv = 0.12 + qv * 0.88;
     float sc = qv / max(l, 0.001);
     color = clamp(color * sc, 0.0, 1.0);
   }
 
-  // --- Halftone in shadows ---
-  if (uEnableHalftone > 0.5) {
+  // Halftone in shadows
+  if (s.enableHalftone > 0.5) {
     float l = luma(color);
-    // Only apply in mid-shadow range, not deep shadows
     float shadow = smoothstep(0.55, 0.25, l) * (1.0 - smoothstep(0.15, 0.05, l));
     if (shadow > 0.01) {
       vec2 fc = uv * uResolution;
-      float dr = shadow * uHalftoneSize * 0.38;
-      float dv = halftonePattern(fc, uHalftoneSize, uHalftoneAngle, dr);
-      // Dots darken slightly, base stays close to original
+      float dr = shadow * s.halftoneSize * 0.38;
+      float dv = halftonePattern(fc, s.halftoneSize, s.halftoneAngle, dr);
       vec3 dotted = color * (1.0 - dv * 0.4);
       color = mix(color, dotted, shadow * 0.7);
     }
   }
 
-  // --- Saturation boost ---
+  // Saturation boost
   vec3 hsv = rgb2hsv(color);
-  hsv.y = clamp(hsv.y * (1.0 + uSaturationBoost), 0.0, 1.0);
+  hsv.y = clamp(hsv.y * (1.0 + s.saturationBoost), 0.0, 1.0);
   color = hsv2rgb(hsv);
 
-  // --- Outlines with wobble applied to sampling ---
-  if (uEnableOutlines > 0.5) {
+  // Outlines (Sobel on normals + depth)
+  if (s.enableOutlines > 0.5) {
     float cd = linearizeDepth(texture(uDepthBuffer, uv).r);
     float df = clamp(1.0 - (cd - uCameraNear) / (uCameraFar * 0.3), 0.6, 1.3);
-
-    // Extra wobble on outline sampling for hand-drawn feel
     float wobbleMult = 1.0;
-    if (uEnableWobble > 0.5) {
-      float edgeNoise = noise(uv * uWobbleFreq * 2.0 + uTime * 1.2);
+    if (s.enableWobble > 0.5) {
+      float edgeNoise = noise(uv * s.wobbleFreq * 2.0 + uTime * 1.2);
       wobbleMult = 0.7 + edgeNoise * 0.6;
     }
-    vec2 t = texel * uOutlineThickness * df * wobbleMult;
+    vec2 t = texel * s.outlineThickness * df * wobbleMult;
 
-    // Sobel on normals
     vec3 ntl = texture(uNormalBuffer, uv + vec2(-t.x, t.y)).rgb;
     vec3 ntc = texture(uNormalBuffer, uv + vec2(0.0, t.y)).rgb;
     vec3 ntr = texture(uNormalBuffer, uv + vec2(t.x, t.y)).rgb;
@@ -216,7 +260,6 @@ void main() {
     vec3 ngy = -ntl - 2.0 * ntc - ntr + nbl + 2.0 * nbc + nbr;
     float ne = length(ngx) + length(ngy);
 
-    // Sobel on depth
     float dtl = linearizeDepth(texture(uDepthBuffer, uv + vec2(-t.x, t.y)).r);
     float dtc = linearizeDepth(texture(uDepthBuffer, uv + vec2(0.0, t.y)).r);
     float dtr = linearizeDepth(texture(uDepthBuffer, uv + vec2(t.x, t.y)).r);
@@ -229,68 +272,131 @@ void main() {
     float dgy = -dtl - 2.0 * dtc - dtr + dbl + 2.0 * dbc + dbr;
     float de = (abs(dgx) + abs(dgy)) / (cd * 0.15 + 0.1);
 
-    // Normal edges: clamp sensitivity to avoid flooding curved surfaces
     ne = min(ne, 3.0);
     float edge = max(ne * 0.25, de * 1.2);
-    edge = smoothstep(uOutlineThreshold, uOutlineThreshold + 0.5, edge);
+    edge = smoothstep(s.outlineThreshold, s.outlineThreshold + 0.5, edge);
     color = mix(color, vec3(0.05, 0.03, 0.02), edge);
   }
 
-  // --- CMYK misregistration ---
-  if (uEnableCmyk > 0.5) {
-    // Each plate offset at a different angle (like misaligned print rollers)
-    float px = uCmykOffset * texel.x;
-    float py = uCmykOffset * texel.y;
-
-    // Slight time-based drift for press vibration
+  // CMYK misregistration
+  if (s.enableCmyk > 0.5) {
+    float px = s.cmykOffset * texel.x;
+    float py = s.cmykOffset * texel.y;
     float drift = sin(uTime * 1.5) * 0.3 + 0.7;
-
     vec2 cOff = vec2( px * 0.7,  py * 1.0) * drift;
     vec2 mOff = vec2(-px * 1.0,  py * 0.5) * drift;
     vec2 yOff = vec2( px * 0.3, -py * 0.8) * drift;
-    // K plate stays centered (it's the master)
-
-    // Sample each plate at its offset position
     vec3 cSample = texture(uDiffuse, uv + cOff).rgb;
     vec3 mSample = texture(uDiffuse, uv + mOff).rgb;
     vec3 ySample = texture(uDiffuse, uv + yOff).rgb;
-    vec3 kSample = color; // center plate
-
-    // Convert each to CMYK, take each channel from its offset sample
+    vec3 kSample = color;
     vec4 cCmyk = rgb2cmyk(cSample);
     vec4 mCmyk = rgb2cmyk(mSample);
     vec4 yCmyk = rgb2cmyk(ySample);
     vec4 kCmyk = rgb2cmyk(kSample);
-
-    // Recombine: C from cyan-offset, M from magenta-offset, etc.
     vec4 misreg = vec4(cCmyk.x, mCmyk.y, yCmyk.z, kCmyk.w);
     color = cmyk2rgb(misreg);
   }
 
-  // --- Paper texture ---
-  if (uEnablePaper > 0.5) {
-    vec2 paperCoord = vUv * uResolution * 0.15;
-
-    // Paper grain (high frequency noise)
+  // Paper texture
+  if (s.enablePaper > 0.5) {
+    vec2 paperCoord = baseUv * uResolution * 0.15;
     float grain = fbm(paperCoord * 3.0) * 0.5 + 0.5;
-    // Fiber texture (stretched noise)
     float fiber = noise(vec2(paperCoord.x * 4.0, paperCoord.y * 0.5)) * 0.5 + 0.5;
     float paper = mix(grain, fiber, 0.3);
-
-    // Paper color: slight warm yellowing
     vec3 paperColor = vec3(0.95, 0.92, 0.85);
-
-    // Blend: multiply paper texture, mix toward paper color
-    color = color * mix(vec3(1.0), vec3(paper * 0.3 + 0.7), uPaperStrength);
-    color = mix(color, color * paperColor, uPaperStrength * 0.5);
-
-    // Vignette: darken edges like an old page
-    vec2 vig = vUv * (1.0 - vUv);
+    color = color * mix(vec3(1.0), vec3(paper * 0.3 + 0.7), s.paperStrength);
+    color = mix(color, color * paperColor, s.paperStrength * 0.5);
+    vec2 vig = baseUv * (1.0 - baseUv);
     float vigAmount = pow(vig.x * vig.y * 20.0, 0.3);
-    color *= mix(1.0, vigAmount, uPaperStrength * 0.4);
+    color *= mix(1.0, vigAmount, s.paperStrength * 0.4);
   }
 
-  fragColor = vec4(color, 1.0);
+  return color;
+}
+
+// ─── Main ────────────────────────────────────────────
+
+void main() {
+  vec2 texel = 1.0 / uResolution;
+  float aspect = uResolution.x / uResolution.y;
+
+  // Build styles from uniforms
+  Style mainStyle = Style(
+    uOutlineThickness, uOutlineThreshold, uCelBands,
+    uHalftoneSize, uHalftoneAngle, uSaturationBoost,
+    uWobbleAmount, uWobbleFreq, uCmykOffset, uPaperStrength,
+    uEnableOutlines, uEnableCelShading, uEnableHalftone,
+    uEnableWobble, uEnableCmyk, uEnablePaper
+  );
+
+  Style lensStyle = Style(
+    uLOutlineThickness, uLOutlineThreshold, uLCelBands,
+    uLHalftoneSize, uLHalftoneAngle, uLSaturationBoost,
+    uLWobbleAmount, uLWobbleFreq, uLCmykOffset, uLPaperStrength,
+    uLEnableOutlines, uLEnableCelShading, uLEnableHalftone,
+    uLEnableWobble, uLEnableCmyk, uLEnablePaper
+  );
+
+  // Lens mask
+  vec2 mA = vec2(uMouse.x * aspect, uMouse.y);
+  vec2 uvA = vec2(vUv.x * aspect, vUv.y);
+  vec2 delta = uvA - mA;
+  float dist = length(delta);
+
+  // Wobble + meteor deformation — always alive, morphs into comet on fast moves
+  float theta = atan(delta.y, delta.x);
+  float vel = length(uMouseVel);
+  vec2 velDir = uMouseVel / max(vel, 0.0001);
+
+  // Base wobble: always wobbly, never a clean circle
+  float wb = (noise(vec2(theta * 4.0 + uTime * 1.2, uTime * 0.5)) - 0.5) * 0.016;
+  wb += (noise(vec2(theta * 10.0 - uTime * 0.9, uTime * 0.7 + 5.0)) - 0.5) * 0.009;
+  wb += sin(theta * 3.0 + uTime * 2.2) * 0.005;
+
+  // Motion wobble: gets chaotic the faster you move
+  float mw = (noise(vec2(theta * 7.0 + uTime * 5.0, uTime * 2.0)) - 0.5) * vel * 0.07;
+  mw += (noise(vec2(theta * 13.0 - uTime * 3.5, vel * 3.0 + 2.0)) - 0.5) * vel * 0.04;
+  mw += sin(theta * 9.0 + uTime * 9.0) * vel * 0.025;
+
+  // Meteor shape: long trailing tail, tight compact front
+  vec2 nDelta = normalize(delta + vec2(0.0001));
+  float dirDot = dot(nDelta, velDir);
+  float behind = max(-dirDot, 0.0);
+  float ahead = max(dirDot, 0.0);
+  // Tail: long stretch, pow < 1 = wide base tapering to point
+  float tailStretch = pow(behind, 0.35) * vel * 0.35;
+  // Extra tail length directly behind (narrow cone)
+  tailStretch += pow(behind, 2.0) * vel * 0.15;
+  // Front: compress hard so the head is tight
+  float frontSquish = pow(ahead, 0.8) * vel * 0.07;
+  float chase = frontSquish - tailStretch;
+
+  float edgeWobble = wb + mw + chase;
+  float effectiveDist = dist + edgeWobble;
+
+  float lensMask = 1.0 - smoothstep(uLensRadius - uLensSmooth, uLensRadius, effectiveDist);
+
+  // Main style (always computed)
+  vec3 mainColor = applyStyle(vUv, texel, mainStyle);
+  vec3 finalColor = mainColor;
+
+  // Lens style (only when active and near cursor)
+  if (uLensRadius > 0.001 && lensMask > 0.001) {
+    vec3 lensColor = applyStyle(vUv, texel, lensStyle);
+    finalColor = mix(mainColor, lensColor, lensMask);
+  }
+
+  // Ink border ring around lens edge
+  if (uLensRadius > 0.001) {
+    float thicknessVar = noise(vec2(theta * 6.0, uTime * 0.5));
+    float ringW = mix(0.0025, 0.006, thicknessVar);
+    float ringDist = abs(effectiveDist - uLensRadius);
+    float ring = 1.0 - smoothstep(0.0, ringW, ringDist);
+    finalColor = mix(finalColor, vec3(0.05, 0.03, 0.02), ring * 0.85);
+  }
+
+  fragColor = vec4(finalColor, 1.0);
 }
 `;
 
@@ -319,6 +425,28 @@ export interface ComicUniforms {
   uEnableWobble: { value: number };
   uEnablePaper: { value: number };
   uPaperStrength: { value: number };
+  uMouse: { value: THREE.Vector2 };
+  // Lens style
+  uLOutlineThickness: { value: number };
+  uLOutlineThreshold: { value: number };
+  uLCelBands: { value: number };
+  uLHalftoneSize: { value: number };
+  uLHalftoneAngle: { value: number };
+  uLSaturationBoost: { value: number };
+  uLWobbleAmount: { value: number };
+  uLWobbleFreq: { value: number };
+  uLCmykOffset: { value: number };
+  uLPaperStrength: { value: number };
+  uLEnableOutlines: { value: number };
+  uLEnableCelShading: { value: number };
+  uLEnableHalftone: { value: number };
+  uLEnableWobble: { value: number };
+  uLEnableCmyk: { value: number };
+  uLEnablePaper: { value: number };
+  // Lens geometry
+  uLensRadius: { value: number };
+  uLensSmooth: { value: number };
+  uMouseVel: { value: THREE.Vector2 };
 }
 
 export function createComicUniforms(): ComicUniforms {
@@ -346,6 +474,28 @@ export function createComicUniforms(): ComicUniforms {
     uEnableWobble: { value: 1.0 },
     uEnablePaper: { value: 1.0 },
     uPaperStrength: { value: 0.4 },
+    uMouse: { value: new THREE.Vector2(0.5, 0.5) },
+    // Lens style (defaults to Noir — contrast of default Comic Book)
+    uLOutlineThickness: { value: 1.5 },
+    uLOutlineThreshold: { value: 0.3 },
+    uLCelBands: { value: 3.0 },
+    uLHalftoneSize: { value: 4.0 },
+    uLHalftoneAngle: { value: 0.78 },
+    uLSaturationBoost: { value: -0.85 },
+    uLWobbleAmount: { value: 3.0 },
+    uLWobbleFreq: { value: 8.0 },
+    uLCmykOffset: { value: 0.0 },
+    uLPaperStrength: { value: 0.6 },
+    uLEnableOutlines: { value: 1.0 },
+    uLEnableCelShading: { value: 1.0 },
+    uLEnableHalftone: { value: 1.0 },
+    uLEnableWobble: { value: 1.0 },
+    uLEnableCmyk: { value: 0.0 },
+    uLEnablePaper: { value: 1.0 },
+    // Lens geometry
+    uLensRadius: { value: 0.0 },
+    uLensSmooth: { value: 0.015 },
+    uMouseVel: { value: new THREE.Vector2(0, 0) },
   };
 }
 

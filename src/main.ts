@@ -89,6 +89,28 @@ const presets: Preset[] = [
   },
 ];
 
+// Contrasting preset pairs for lens effect
+const contrastMap: Record<number, number> = {
+  0: 2, // Comic Book → Noir
+  1: 3, // Pop Art → Manga
+  2: 1, // Noir → Pop Art
+  3: 0, // Manga → Comic Book
+  4: 5, // Vintage Print → Clean
+  5: 4, // Clean → Vintage Print
+};
+
+let activePresetIndex = 0;
+
+function setLensPreset(preset: Preset) {
+  const v = preset.values;
+  for (const key of Object.keys(v)) {
+    const lensKey = 'uL' + key.slice(1); // uOutlineThickness → uLOutlineThickness
+    if (u[lensKey]) {
+      (u[lensKey] as { value: number }).value = v[key];
+    }
+  }
+}
+
 let presetAnimationId: number | null = null;
 
 function applyPreset(preset: Preset, animate = true) {
@@ -148,7 +170,9 @@ presets.forEach((preset, i) => {
     if (activeBtn) activeBtn.classList.remove('active');
     btn.classList.add('active');
     activeBtn = btn;
+    activePresetIndex = i;
     applyPreset(preset);
+    setLensPreset(presets[contrastMap[i]]);
   });
   presetsEl.appendChild(btn);
   if (i === 0) activeBtn = btn;
@@ -251,9 +275,46 @@ setTimeout(() => {
   setTimeout(() => {
     applyPreset(presets[0], false);
     updateGuiFromUniforms();
+    setLensPreset(presets[contrastMap[0]]);
     flash.classList.remove('visible');
   }, 300);
 }, 1200);
+
+// ─── Mouse interaction (lens follows cursor) ────────
+
+const mousePos = { x: 0.5, y: 0.5 };
+const prevMousePos = { x: 0.5, y: 0.5 };
+const smoothMouse = { x: 0.5, y: 0.5 };
+let mouseOnCanvas = false;
+let currentLensRadius = 0.0;
+const baseLensRadius = 0.045;
+const maxLensRadius = 0.13;
+const smoothVel = { x: 0, y: 0 };
+
+canvas.addEventListener('mousemove', (e) => {
+  mousePos.x = e.clientX / window.innerWidth;
+  mousePos.y = 1.0 - e.clientY / window.innerHeight;
+});
+
+canvas.addEventListener('mouseenter', () => { mouseOnCanvas = true; });
+canvas.addEventListener('mouseleave', () => { mouseOnCanvas = false; });
+
+// Touch: lens appears on press, follows finger, disappears on lift
+canvas.addEventListener('touchmove', (e) => {
+  const touch = e.touches[0];
+  mousePos.x = touch.clientX / window.innerWidth;
+  mousePos.y = 1.0 - touch.clientY / window.innerHeight;
+}, { passive: true });
+
+canvas.addEventListener('touchstart', (e) => {
+  mouseOnCanvas = true;
+  const touch = e.touches[0];
+  mousePos.x = touch.clientX / window.innerWidth;
+  mousePos.y = 1.0 - touch.clientY / window.innerHeight;
+}, { passive: true });
+
+canvas.addEventListener('touchend', () => { mouseOnCanvas = false; }, { passive: true });
+canvas.addEventListener('touchcancel', () => { mouseOnCanvas = false; }, { passive: true });
 
 // ─── Auto-orbit camera ──────────────────────────────
 
@@ -267,6 +328,29 @@ engine.controls.addEventListener('start', () => {
 // Start
 engine.start((dt) => {
   comicScene.update(dt);
+
+  // Smooth mouse follow for lens
+  smoothMouse.x += (mousePos.x - smoothMouse.x) * 0.06;
+  smoothMouse.y += (mousePos.y - smoothMouse.y) * 0.06;
+  u.uMouse.value.set(smoothMouse.x, smoothMouse.y);
+
+  // Track cursor velocity — drives wobble + meteor shape
+  const dx = (smoothMouse.x - prevMousePos.x) * 60;
+  const dy = (smoothMouse.y - prevMousePos.y) * 60;
+  smoothVel.x += (dx - smoothVel.x) * 0.15; // fast attack
+  smoothVel.y += (dy - smoothVel.y) * 0.15;
+  smoothVel.x *= 0.92; // slower decay — tail lingers
+  smoothVel.y *= 0.92;
+  u.uMouseVel.value.set(smoothVel.x, smoothVel.y);
+  prevMousePos.x = smoothMouse.x;
+  prevMousePos.y = smoothMouse.y;
+
+  // Dynamic lens size: small when still, grows when moving fast
+  const speed = Math.sqrt(smoothVel.x * smoothVel.x + smoothVel.y * smoothVel.y);
+  const sizeFromSpeed = baseLensRadius + Math.min(speed * 0.1, maxLensRadius - baseLensRadius);
+  const targetR = mouseOnCanvas ? sizeFromSpeed : 0.0;
+  currentLensRadius += (targetR - currentLensRadius) * 0.07;
+  u.uLensRadius.value = currentLensRadius;
 
   if (autoOrbit) {
     const t = performance.now() * 0.001;
