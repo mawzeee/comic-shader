@@ -152,6 +152,33 @@ canvas#canvas {
   }
 }
 
+/* Lens mode toggle */
+
+#lens-mode {
+  position: absolute;
+  bottom: 36px;
+  right: 120px;
+  pointer-events: auto;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #fff;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-family: 'Bangers', cursive;
+  font-size: 14px;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+#lens-mode:hover {
+  background: rgba(255,255,255,0.2);
+  border-color: rgba(255,255,255,0.35);
+}
+
 /* lil-gui override: move to right side, make smaller */
 .lil-gui.root {
   position: fixed !important;

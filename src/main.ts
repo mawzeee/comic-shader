@@ -280,41 +280,72 @@ setTimeout(() => {
   }, 300);
 }, 1200);
 
-// ─── Mouse interaction (lens follows cursor) ────────
+// ─── Lens mode toggle ───────────────────────────────
+
+const lensModes = ['PENCIL', 'X-RAY', 'VOID'];
+let lensMode = 0;
+
+const lensModeEl = document.createElement('div');
+lensModeEl.id = 'lens-mode';
+lensModeEl.textContent = lensModes[0];
+lensModeEl.addEventListener('click', () => {
+  lensMode = (lensMode + 1) % 3;
+  u.uLensMode.value = lensMode;
+  lensModeEl.textContent = lensModes[lensMode];
+});
+document.getElementById('overlay')!.appendChild(lensModeEl);
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === '1') { lensMode = 0; }
+  else if (e.key === '2') { lensMode = 1; }
+  else if (e.key === '3') { lensMode = 2; }
+  else return;
+  u.uLensMode.value = lensMode;
+  lensModeEl.textContent = lensModes[lensMode];
+});
+
+// ─── Mouse interaction (click-and-hold lens) ─────────
 
 const mousePos = { x: 0.5, y: 0.5 };
 const prevMousePos = { x: 0.5, y: 0.5 };
 const smoothMouse = { x: 0.5, y: 0.5 };
-let mouseOnCanvas = false;
+let lensActive = false;
 let currentLensRadius = 0.0;
-const baseLensRadius = 0.045;
-const maxLensRadius = 0.13;
+let lensRadiusVel = 0.0;
+const lensRadius = 0.08;
 const smoothVel = { x: 0, y: 0 };
 
-canvas.addEventListener('mousemove', (e) => {
+// Always track mouse position
+window.addEventListener('mousemove', (e) => {
   mousePos.x = e.clientX / window.innerWidth;
   mousePos.y = 1.0 - e.clientY / window.innerHeight;
 });
 
-canvas.addEventListener('mouseenter', () => { mouseOnCanvas = true; });
-canvas.addEventListener('mouseleave', () => { mouseOnCanvas = false; });
+// Lens appears on press, disappears on release
+window.addEventListener('mousedown', (e) => {
+  // Ignore clicks on UI elements
+  if ((e.target as HTMLElement).closest('#overlay, .lil-gui')) return;
+  lensActive = true;
+});
+window.addEventListener('mouseup', () => { lensActive = false; });
 
-// Touch: lens appears on press, follows finger, disappears on lift
-canvas.addEventListener('touchmove', (e) => {
+// Touch: lens on press, follows finger, gone on lift
+window.addEventListener('touchstart', (e) => {
+  if ((e.target as HTMLElement).closest('#overlay, .lil-gui')) return;
+  lensActive = true;
   const touch = e.touches[0];
   mousePos.x = touch.clientX / window.innerWidth;
   mousePos.y = 1.0 - touch.clientY / window.innerHeight;
 }, { passive: true });
 
-canvas.addEventListener('touchstart', (e) => {
-  mouseOnCanvas = true;
+window.addEventListener('touchmove', (e) => {
   const touch = e.touches[0];
   mousePos.x = touch.clientX / window.innerWidth;
   mousePos.y = 1.0 - touch.clientY / window.innerHeight;
 }, { passive: true });
 
-canvas.addEventListener('touchend', () => { mouseOnCanvas = false; }, { passive: true });
-canvas.addEventListener('touchcancel', () => { mouseOnCanvas = false; }, { passive: true });
+window.addEventListener('touchend', () => { lensActive = false; }, { passive: true });
+window.addEventListener('touchcancel', () => { lensActive = false; }, { passive: true });
 
 // ─── Auto-orbit camera ──────────────────────────────
 
@@ -328,38 +359,57 @@ engine.controls.addEventListener('start', () => {
 // Start
 engine.start((dt) => {
   comicScene.update(dt);
+  const safeDt = Math.min(Math.max(dt, 0.001), 0.05); // clamp: avoid div-by-zero on first frame
 
-  // Smooth mouse follow for lens
-  smoothMouse.x += (mousePos.x - smoothMouse.x) * 0.06;
-  smoothMouse.y += (mousePos.y - smoothMouse.y) * 0.06;
+  // ── Mouse follow: adaptive lerp (snaps when far, settles when close) ──
+  const distToTarget = Math.hypot(mousePos.x - smoothMouse.x, mousePos.y - smoothMouse.y);
+  const followRate = 8 + distToTarget * 40; // faster when further away
+  const followFactor = 1 - Math.exp(-followRate * safeDt);
+  smoothMouse.x += (mousePos.x - smoothMouse.x) * followFactor;
+  smoothMouse.y += (mousePos.y - smoothMouse.y) * followFactor;
   u.uMouse.value.set(smoothMouse.x, smoothMouse.y);
 
-  // Track cursor velocity — drives wobble + meteor shape
-  const dx = (smoothMouse.x - prevMousePos.x) * 60;
-  const dy = (smoothMouse.y - prevMousePos.y) * 60;
-  smoothVel.x += (dx - smoothVel.x) * 0.15; // fast attack
-  smoothVel.y += (dy - smoothVel.y) * 0.15;
-  smoothVel.x *= 0.92; // slower decay — tail lingers
-  smoothVel.y *= 0.92;
+  // ── Velocity: asymmetric attack/decay (frame-rate independent) ──
+  const rawVelX = (smoothMouse.x - prevMousePos.x) / safeDt;
+  const rawVelY = (smoothMouse.y - prevMousePos.y) / safeDt;
+  const rawSpeed = Math.hypot(rawVelX, rawVelY);
+  const curSpeed = Math.hypot(smoothVel.x, smoothVel.y);
+  // Fast attack when accelerating, slow organic decay when settling
+  const isAccel = rawSpeed > curSpeed;
+  const velRate = isAccel ? 12 : 4;
+  const velFactor = 1 - Math.exp(-velRate * safeDt);
+  smoothVel.x += (rawVelX - smoothVel.x) * velFactor;
+  smoothVel.y += (rawVelY - smoothVel.y) * velFactor;
   u.uMouseVel.value.set(smoothVel.x, smoothVel.y);
   prevMousePos.x = smoothMouse.x;
   prevMousePos.y = smoothMouse.y;
 
-  // Dynamic lens size: small when still, grows when moving fast
-  const speed = Math.sqrt(smoothVel.x * smoothVel.x + smoothVel.y * smoothVel.y);
-  const sizeFromSpeed = baseLensRadius + Math.min(speed * 0.1, maxLensRadius - baseLensRadius);
-  const targetR = mouseOnCanvas ? sizeFromSpeed : 0.0;
-  currentLensRadius += (targetR - currentLensRadius) * 0.07;
+  // ── Lens radius: spring physics (pops open on press, snaps shut on release) ──
+  const targetR = lensActive ? lensRadius : 0.0;
+
+  // Underdamped spring: slight overshoot on appear, elastic settle
+  const stiffness = 160;
+  const damping = 17;
+  const springForce = (targetR - currentLensRadius) * stiffness;
+  const dampForce = -lensRadiusVel * damping;
+  lensRadiusVel += (springForce + dampForce) * safeDt;
+  currentLensRadius += lensRadiusVel * safeDt;
+  currentLensRadius = Math.max(0, currentLensRadius);
+  // Hard cutoff: kill residual spring oscillation so lens fully vanishes
+  if (!lensActive && currentLensRadius < 0.005) {
+    currentLensRadius = 0;
+    lensRadiusVel = 0;
+  }
   u.uLensRadius.value = currentLensRadius;
 
+  // ── Camera orbit: layered sine waves for organic drift ──
   if (autoOrbit) {
     const t = performance.now() * 0.001;
     const radius = 9;
-    const speed = 0.12;
-    const angle = t * speed;
+    const angle = t * 0.12 + Math.sin(t * 0.037) * 0.15;
     engine.camera.position.x = Math.sin(angle) * radius;
     engine.camera.position.z = Math.cos(angle) * radius;
-    engine.camera.position.y = 4 + Math.sin(t * 0.08) * 0.5;
+    engine.camera.position.y = 4 + Math.sin(t * 0.08) * 0.4 + Math.sin(t * 0.031) * 0.2;
     engine.camera.lookAt(0, 1.5, 0);
   }
 });
