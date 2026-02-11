@@ -1,4 +1,4 @@
-/* ── Reset ── */
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@300;400;500&display=swap');
 
 * {
   margin: 0;
@@ -10,21 +10,17 @@ html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #0c0818;
-  font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
-  -webkit-font-smoothing: antialiased;
+  background: #1a1a1a;
+  font-family: 'Inter', sans-serif;
 }
 
 canvas#canvas {
   display: block;
-  width: 100vw;
-  height: 100vh;
-  position: fixed;
-  top: 0;
-  left: 0;
+  width: 100%;
+  height: 100%;
 }
 
-/* ── Overlay ── */
+/* --- Overlay UI --- */
 
 #overlay {
   position: fixed;
@@ -36,334 +32,99 @@ canvas#canvas {
   z-index: 10;
 }
 
-/* ─────────────────────────────────────────────────────
-   HERO TITLE — JetBrains Mono 600. Code-bold.
-   The preset name as a confident, technical statement.
-   ───────────────────────────────────────────────────── */
-
-#hero-title {
+#header {
   position: absolute;
   top: 32px;
-  left: 50%;
-  transform: translateX(-50%);
-  text-align: center;
-  pointer-events: none;
-  z-index: 5;
-  transition: opacity 0.25s ease;
+  left: 36px;
+  pointer-events: auto;
 }
 
-#hero-title.fade-out {
-  opacity: 0;
-}
-
-#title-text {
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 600;
-  font-size: 28px;
-  color: rgba(255, 255, 255, 0.88);
-  letter-spacing: -0.03em;
+#header h1 {
+  font-family: 'Bangers', cursive;
+  font-size: 52px;
+  color: #fff;
+  letter-spacing: 3px;
+  text-shadow:
+    3px 3px 0 #1a1a1a,
+    -1px -1px 0 #1a1a1a,
+    1px -1px 0 #1a1a1a,
+    -1px 1px 0 #1a1a1a;
   line-height: 1;
-  user-select: none;
-  text-transform: uppercase;
+  margin-bottom: 6px;
 }
 
-#title-sub {
-  font-family: 'JetBrains Mono', monospace;
+#header p {
+  font-size: 13px;
+  color: rgba(255,255,255,0.55);
   font-weight: 300;
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.22);
-  margin-top: 8px;
-  user-select: none;
+  max-width: 320px;
+  line-height: 1.5;
 }
 
-/* Title transition */
-@keyframes titlePop {
-  0% { transform: translateX(-50%) translateY(4px); opacity: 0; }
-  100% { transform: translateX(-50%) translateY(0); opacity: 1; }
-}
-
-#hero-title.pop-in {
-  animation: titlePop 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-}
-
-/* ── Controls toggle: top-right ── */
-
-#controls-toggle {
-  position: absolute;
-  top: 28px;
-  right: 24px;
-  pointer-events: auto;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(40px) saturate(180%);
-  -webkit-backdrop-filter: blur(40px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.4);
-  cursor: pointer;
-  padding: 0;
-  border-radius: 8px;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s ease;
-  z-index: 25;
-}
-
-#controls-toggle svg {
-  width: 14px;
-  height: 14px;
-}
-
-#controls-toggle:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.7);
-  border-color: rgba(255, 255, 255, 0.15);
-}
-
-#controls-toggle:active {
-  background: rgba(255, 255, 255, 0.04);
-  transform: scale(0.94);
-  transition-duration: 0.06s;
-}
-
-#controls-toggle.active {
-  background: rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.8);
-  border-color: rgba(255, 255, 255, 0.18);
-}
-
-/* ── Controls drawer ── */
-
-#controls-drawer {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 280px;
-  height: 100%;
-  pointer-events: auto;
-  background: rgba(10, 12, 22, 0.8);
-  backdrop-filter: blur(60px) saturate(180%);
-  -webkit-backdrop-filter: blur(60px) saturate(180%);
-  border-left: 1px solid rgba(255, 255, 255, 0.06);
-  transform: translateX(100%);
-  transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
-  z-index: 20;
-  padding: 72px 0 32px;
-  overflow-y: auto;
-}
-
-#controls-drawer.open {
-  transform: translateX(0);
-}
-
-#controls-drawer-inner {
-  width: 100%;
-}
-
-#controls-drawer .lil-gui.root {
-  position: static !important;
-  width: 100% !important;
-  max-height: none !important;
-  --background-color: transparent;
-  --widget-color: rgba(255, 255, 255, 0.05);
-  --focus-color: rgba(255, 255, 255, 0.1);
-  --number-color: rgba(255, 255, 255, 0.6);
-  --string-color: rgba(255, 255, 255, 0.6);
-  --title-background-color: rgba(255, 255, 255, 0.02);
-  --title-text-color: rgba(255, 255, 255, 0.3);
-  --text-color: rgba(255, 255, 255, 0.4);
-  font-family: 'JetBrains Mono', monospace !important;
-  font-size: 11px !important;
-}
-
-/* ─────────────────────────────────────────────────────
-   PRESET BAR — Segmented control. Mono labels.
-   Fixed-width chars create natural rhythm.
-   ───────────────────────────────────────────────────── */
+/* Presets */
 
 #presets {
   position: absolute;
-  bottom: 28px;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 36px;
+  left: 36px;
   display: flex;
-  align-items: center;
-  gap: 0;
+  gap: 8px;
+  flex-wrap: wrap;
+  max-width: 500px;
   pointer-events: auto;
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(40px) saturate(180%);
-  -webkit-backdrop-filter: blur(40px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 10px;
-  padding: 3px;
 }
 
 .preset-btn {
-  position: relative;
-  background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.32);
-  padding: 6px 13px;
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 400;
-  font-size: 11px;
-  letter-spacing: 0.02em;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
   cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease;
-  white-space: nowrap;
-  border-radius: 7px;
+  transition: all 0.2s ease;
   text-transform: uppercase;
 }
 
 .preset-btn:hover {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.preset-btn:active {
-  opacity: 0.7;
-  transition-duration: 0.04s;
+  background: rgba(255,255,255,0.2);
+  border-color: rgba(255,255,255,0.35);
 }
 
 .preset-btn.active {
-  color: rgba(0, 0, 0, 0.82);
-  font-weight: 500;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.15),
-    0 2px 6px rgba(0, 0, 0, 0.08);
+  background: rgba(255,255,255,0.9);
+  color: #1a1a1a;
+  border-color: #fff;
 }
 
-.preset-btn.active:hover {
-  background: #fff;
-}
+/* Credits */
 
-.preset-btn.active:active {
-  opacity: 0.85;
-  transition-duration: 0.04s;
-}
-
-@keyframes presetPop {
-  0% { transform: scale(0.96); }
-  60% { transform: scale(1.02); }
-  100% { transform: scale(1); }
-}
-
-.preset-btn.pop {
-  animation: presetPop 0.2s ease-out;
-}
-
-/* ── Compare: bottom-left ── */
-
-#compare {
+#credits {
   position: absolute;
-  bottom: 32px;
-  left: 24px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  pointer-events: auto;
-  cursor: pointer;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-.compare-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 400;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.25);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  transition: color 0.15s ease;
-}
-
-.compare-hint {
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 500;
-  font-size: 9px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 4px;
-  padding: 2px 6px;
-  transition: all 0.12s ease;
-}
-
-#compare:hover .compare-label {
-  color: rgba(255, 255, 255, 0.45);
-}
-
-#compare:hover .compare-hint {
-  background: rgba(255, 255, 255, 0.07);
-  color: rgba(255, 255, 255, 0.35);
-}
-
-#compare.active .compare-label {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-#compare.active .compare-hint {
-  background: rgba(255, 255, 255, 0.85);
-  border-color: transparent;
-  color: rgba(0, 0, 0, 0.7);
-}
-
-/* ── Model switcher: bottom-right ── */
-
-#model-switcher {
-  position: absolute;
-  bottom: 32px;
-  right: 24px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  bottom: 36px;
+  right: 36px;
+  text-align: right;
   pointer-events: auto;
 }
 
-.model-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 400;
+#credits a {
+  color: rgba(255,255,255,0.4);
+  text-decoration: none;
   font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  color: rgba(255, 255, 255, 0.25);
+  font-weight: 300;
+  transition: color 0.2s;
 }
 
-.model-name {
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(40px) saturate(180%);
-  -webkit-backdrop-filter: blur(40px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.6);
-  padding: 6px 13px;
-  border-radius: 8px;
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 400;
-  font-size: 11px;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.15s ease;
+#credits a:hover {
+  color: rgba(255,255,255,0.7);
 }
 
-.model-name:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.8);
-  border-color: rgba(255, 255, 255, 0.12);
-}
-
-.model-name:active {
-  background: rgba(255, 255, 255, 0.03);
-  transform: scale(0.96);
-  transition-duration: 0.06s;
-}
-
-/* ── Reveal flash ── */
+/* Reveal flash */
 
 #flash {
   position: fixed;
@@ -371,7 +132,7 @@ canvas#canvas {
   left: 0;
   width: 100%;
   height: 100%;
-  background: #0c0818;
+  background: #fff;
   z-index: 100;
   opacity: 0;
   pointer-events: none;
@@ -382,64 +143,49 @@ canvas#canvas {
   opacity: 1;
 }
 
-/* ── Reduced motion ── */
-
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  #flash {
+    transition: none;
+  }
+  .preset-btn {
+    transition: none;
   }
 }
 
-/* ── Mobile ── */
+/* Lens mode toggle */
 
-@media (max-width: 768px) {
-  #hero-title {
-    top: 24px;
-  }
-
-  #title-text {
-    font-size: 22px;
-  }
-
-  #title-sub {
-    font-size: 9px;
-  }
-
-  #presets {
-    bottom: 20px;
-    padding: 2px;
-  }
-
-  .preset-btn {
-    padding: 5px 10px;
-    font-size: 10px;
-  }
-
-  #compare {
-    bottom: 62px;
-    left: 20px;
-  }
-
-  #model-switcher {
-    bottom: 62px;
-    right: 20px;
-  }
-
-  #controls-toggle {
-    top: 24px;
-    right: 20px;
-  }
+#lens-mode {
+  position: absolute;
+  bottom: 36px;
+  right: 120px;
+  pointer-events: auto;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #fff;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-family: 'Bangers', cursive;
+  font-size: 14px;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
 }
 
-@media (max-width: 480px) {
-  .preset-btn {
-    padding: 4px 7px;
-    font-size: 9px;
-  }
+#lens-mode:hover {
+  background: rgba(255,255,255,0.2);
+  border-color: rgba(255,255,255,0.35);
+}
 
-  #title-text {
-    font-size: 18px;
-  }
+/* lil-gui override: move to right side, make smaller */
+.lil-gui.root {
+  position: fixed !important;
+  top: 32px !important;
+  right: 36px !important;
+  width: 240px !important;
+  max-height: calc(100vh - 100px) !important;
+  overflow-y: auto !important;
+  z-index: 20 !important;
 }

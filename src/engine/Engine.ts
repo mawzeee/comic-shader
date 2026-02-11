@@ -3,7 +3,6 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { Pass } from 'three/examples/jsm/postprocessing/Pass.js';
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
 export class Engine {
   renderer: THREE.WebGLRenderer;
@@ -14,34 +13,20 @@ export class Engine {
   depthTexture: THREE.DepthTexture;
 
   private renderTarget: THREE.WebGLRenderTarget;
-  private dpr: number;
 
   constructor(canvas: HTMLCanvasElement) {
-    this.dpr = Math.min(window.devicePixelRatio, 2);
-
     // Renderer
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    this.renderer.setPixelRatio(this.dpr);
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false });
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 0.9;
-    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    this.renderer.toneMapping = THREE.NoToneMapping;
+    this.renderer.toneMappingExposure = 1.0;
 
     // Scene
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x0c0818);
-    this.scene.fog = new THREE.FogExp2(0x0c0818, 0.032);
-
-    // Environment map
-    const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
-    pmremGenerator.compileEquirectangularShader();
-    this.scene.environment = pmremGenerator.fromScene(
-      new RoomEnvironment(),
-      0.04
-    ).texture;
-    pmremGenerator.dispose();
+    this.scene.background = new THREE.Color(0xf5f0e8);
 
     // Camera
     this.camera = new THREE.PerspectiveCamera(
@@ -50,35 +35,34 @@ export class Engine {
       0.1,
       100
     );
-    this.camera.position.set(5, 5.2, 7);
+    this.camera.position.set(5, 4, 7);
 
-    // Controls — horizontal rotation only, locked distance/height
+    // Controls
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.05;
-    this.controls.target.set(0, 1.8, 0);
-    this.controls.enableZoom = false;
-    this.controls.enablePan = false;
-    this.controls.minPolarAngle = 1.0;
-    this.controls.maxPolarAngle = 1.35;
+    this.controls.target.set(0, 1.5, 0);
     this.controls.update();
 
-    // Render target at DEVICE pixel resolution, with depth texture baked in
-    const pw = Math.floor(window.innerWidth * this.dpr);
-    const ph = Math.floor(window.innerHeight * this.dpr);
-
-    this.depthTexture = new THREE.DepthTexture(pw, ph);
+    // Render target with depth texture for post-processing
+    this.depthTexture = new THREE.DepthTexture(
+      window.innerWidth,
+      window.innerHeight
+    );
     this.depthTexture.format = THREE.DepthFormat;
     this.depthTexture.type = THREE.UnsignedIntType;
 
-    this.renderTarget = new THREE.WebGLRenderTarget(pw, ph, {
-      minFilter: THREE.LinearFilter,
-      magFilter: THREE.LinearFilter,
-      type: THREE.HalfFloatType,
-      depthTexture: this.depthTexture,
-    });
+    this.renderTarget = new THREE.WebGLRenderTarget(
+      window.innerWidth,
+      window.innerHeight,
+      {
+        minFilter: THREE.NearestFilter,
+        magFilter: THREE.NearestFilter,
+        depthTexture: this.depthTexture,
+      }
+    );
 
-    // Composer — pass our DPR-scaled render target
+    // Composer
     this.composer = new EffectComposer(this.renderer, this.renderTarget);
     const renderPass = new RenderPass(this.scene, this.camera);
     this.composer.addPass(renderPass);
@@ -91,31 +75,21 @@ export class Engine {
     this.composer.addPass(pass);
   }
 
-  renderDirect() {
-    this.renderer.render(this.scene, this.camera);
-  }
-
   private onResize() {
     const w = window.innerWidth;
     const h = window.innerHeight;
 
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
-    this.renderer.setSize(w, h);
 
-    // composer.setSize multiplies by its internal _pixelRatio (from renderer)
+    this.renderer.setSize(w, h);
     this.composer.setSize(w, h);
 
-    // Depth textures on both render targets need manual resize
-    const rt1 = this.composer.renderTarget1;
-    const rt2 = this.composer.renderTarget2;
-    for (const rt of [rt1, rt2]) {
-      if (rt.depthTexture) {
-        rt.depthTexture.image.width = rt.width;
-        rt.depthTexture.image.height = rt.height;
-        rt.depthTexture.needsUpdate = true;
-      }
-    }
+    // Resize depth texture to match (composer doesn't handle this)
+    this.depthTexture.image.width = w;
+    this.depthTexture.image.height = h;
+    this.depthTexture.needsUpdate = true;
+    this.renderTarget.setSize(w, h);
   }
 
   start(onUpdate?: (dt: number) => void) {
@@ -125,6 +99,7 @@ export class Engine {
       const dt = clock.getDelta();
       this.controls.update();
       if (onUpdate) onUpdate(dt);
+      this.composer.render();
     };
     animate();
   }

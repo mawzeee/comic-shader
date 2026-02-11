@@ -2,156 +2,147 @@ import * as THREE from 'three';
 
 export class ComicScene {
   private objects: THREE.Mesh[] = [];
-  /** The group containing all primitive shapes + ground + lights */
-  group: THREE.Group;
 
   constructor(scene: THREE.Scene) {
-    this.group = new THREE.Group();
-    scene.add(this.group);
-
-    this.createGround();
-    this.createShapes();
-    this.createLights();
+    this.createGround(scene);
+    this.createShapes(scene);
+    this.createLights(scene);
   }
 
-  private createGround() {
-    const geo = new THREE.PlaneGeometry(80, 80);
+  private createGround(scene: THREE.Scene) {
+    const geo = new THREE.PlaneGeometry(30, 30);
     const mat = new THREE.MeshStandardMaterial({
-      color: 0x0e0a20,
+      color: 0xe8dfd0,
       roughness: 0.95,
       metalness: 0.0,
     });
     const ground = new THREE.Mesh(geo, mat);
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
-    this.group.add(ground);
+    scene.add(ground);
   }
 
-  private createShapes() {
-    // Hero: Large torus knot — deep vermilion red, glossy
+  private createShapes(scene: THREE.Scene) {
+    // Hero: Large torus knot — center piece, dramatic curves
     const heroGeo = new THREE.TorusKnotGeometry(1.1, 0.38, 200, 40, 2, 3);
-    const heroMat = new THREE.MeshPhysicalMaterial({
-      color: 0xc41a1a,
-      roughness: 0.15,
-      metalness: 0.0,
-      clearcoat: 0.8,
-      clearcoatRoughness: 0.1,
+    const heroMat = new THREE.MeshStandardMaterial({
+      color: 0xe02020,
+      roughness: 0.3,
+      metalness: 0.15,
     });
     const hero = new THREE.Mesh(heroGeo, heroMat);
     hero.position.set(0, 2.2, 0);
     hero.castShadow = true;
     hero.receiveShadow = true;
-    this.group.add(hero);
+    scene.add(hero);
     this.objects.push(hero);
 
-    // Sphere — warm gold, smooth
+    // Sphere — classic comic shape
     const sphereGeo = new THREE.SphereGeometry(0.85, 64, 64);
     const sphereMat = new THREE.MeshStandardMaterial({
-      color: 0xd4940a,
-      roughness: 0.08,
-      metalness: 0.05,
+      color: 0x2255cc,
+      roughness: 0.25,
+      metalness: 0.1,
     });
     const sphere = new THREE.Mesh(sphereGeo, sphereMat);
-    sphere.position.set(-2.2, 0.85, 1.8);
+    sphere.position.set(-2.8, 0.85, 1.5);
     sphere.castShadow = true;
     sphere.receiveShadow = true;
-    this.group.add(sphere);
+    scene.add(sphere);
     this.objects.push(sphere);
 
-    // Dodecahedron — coral, chalky matte
+    // Dodecahedron — interesting facets for cel shading
     const dodecGeo = new THREE.DodecahedronGeometry(0.75);
     const dodecMat = new THREE.MeshStandardMaterial({
-      color: 0xe04e28,
-      roughness: 0.85,
-      metalness: 0.0,
+      color: 0xf0a020,
+      roughness: 0.35,
+      metalness: 0.1,
       flatShading: true,
     });
     const dodec = new THREE.Mesh(dodecGeo, dodecMat);
-    dodec.position.set(2.2, 0.85, 1.5);
+    dodec.position.set(2.6, 0.85, 1.8);
     dodec.castShadow = true;
     dodec.receiveShadow = true;
-    this.group.add(dodec);
+    scene.add(dodec);
     this.objects.push(dodec);
 
-    // Tall cylinder — burnt sienna, satin
+    // Tall cylinder — pillar
     const cylGeo = new THREE.CylinderGeometry(0.4, 0.5, 2.4, 32);
     const cylMat = new THREE.MeshStandardMaterial({
-      color: 0xb54020,
-      roughness: 0.45,
-      metalness: 0.0,
+      color: 0x22aa55,
+      roughness: 0.4,
+      metalness: 0.05,
     });
     const cyl = new THREE.Mesh(cylGeo, cylMat);
     cyl.position.set(-1.2, 1.2, 3.0);
     cyl.castShadow = true;
     cyl.receiveShadow = true;
-    this.group.add(cyl);
+    scene.add(cyl);
     this.objects.push(cyl);
 
-    // Torus — hot rose / magenta, metallic
+    // Torus — ring floating
     const torusGeo = new THREE.TorusGeometry(0.6, 0.2, 32, 64);
     const torusMat = new THREE.MeshStandardMaterial({
-      color: 0xcc2870,
-      roughness: 0.2,
-      metalness: 0.5,
+      color: 0xcc44aa,
+      roughness: 0.3,
+      metalness: 0.2,
     });
     const torus = new THREE.Mesh(torusGeo, torusMat);
     torus.position.set(1.5, 1.8, 2.8);
     torus.rotation.x = Math.PI * 0.3;
     torus.castShadow = true;
     torus.receiveShadow = true;
-    this.group.add(torus);
+    scene.add(torus);
     this.objects.push(torus);
 
-    // Small icosahedron — amber, rough matte
+    // Small icosahedron — accent
     const icoGeo = new THREE.IcosahedronGeometry(0.45, 0);
     const icoMat = new THREE.MeshStandardMaterial({
-      color: 0xcc6a08,
-      roughness: 0.95,
-      metalness: 0.0,
+      color: 0xff6633,
+      roughness: 0.35,
+      metalness: 0.1,
       flatShading: true,
     });
     const ico = new THREE.Mesh(icoGeo, icoMat);
-    ico.position.set(2.8, 0.5, 0.2);
+    ico.position.set(3.2, 0.5, -0.5);
     ico.castShadow = true;
     ico.receiveShadow = true;
-    this.group.add(ico);
+    scene.add(ico);
     this.objects.push(ico);
   }
 
-  private createLights() {
-    // Key light — warm, dramatic
-    const dirLight = new THREE.DirectionalLight(0xffe0c0, 3.8);
-    dirLight.position.set(4, 8, 3);
+  private createLights(scene: THREE.Scene) {
+    // Key light — dramatic
+    const dirLight = new THREE.DirectionalLight(0xfff5e0, 3.0);
+    dirLight.position.set(5, 10, 4);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 2048;
     dirLight.shadow.mapSize.height = 2048;
-    dirLight.shadow.camera.near = 1;
-    dirLight.shadow.camera.far = 20;
-    dirLight.shadow.camera.left = -6;
-    dirLight.shadow.camera.right = 6;
-    dirLight.shadow.camera.top = 6;
-    dirLight.shadow.camera.bottom = -2;
-    dirLight.shadow.bias = -0.0005;
-    dirLight.shadow.normalBias = 0.02;
-    dirLight.shadow.radius = 3;
-    this.group.add(dirLight);
+    dirLight.shadow.camera.near = 0.5;
+    dirLight.shadow.camera.far = 30;
+    dirLight.shadow.camera.left = -10;
+    dirLight.shadow.camera.right = 10;
+    dirLight.shadow.camera.top = 10;
+    dirLight.shadow.camera.bottom = -10;
+    dirLight.shadow.bias = -0.001;
+    scene.add(dirLight);
 
-    // Hemisphere — indigo sky / deep warm ground
-    const hemiLight = new THREE.HemisphereLight(0x4030a0, 0x402010, 0.6);
-    this.group.add(hemiLight);
+    // Strong ambient — comics are bright, shadows still have color
+    const ambientLight = new THREE.AmbientLight(0xd0d4e8, 2.2);
+    scene.add(ambientLight);
 
-    // Fill light — cool violet, from opposite side
-    const fillLight = new THREE.DirectionalLight(0x8070c0, 0.9);
+    // Fill light — from opposite side to soften shadows
+    const fillLight = new THREE.DirectionalLight(0xb0c0e0, 1.8);
     fillLight.position.set(-5, 6, -3);
-    this.group.add(fillLight);
+    scene.add(fillLight);
 
-    // Rim light — warm amber, stronger edge separation
-    const rimLight = new THREE.DirectionalLight(0xffc080, 1.4);
+    // Rim light from behind for edge separation
+    const rimLight = new THREE.DirectionalLight(0xffe8d0, 0.8);
     rimLight.position.set(-2, 3, -6);
-    this.group.add(rimLight);
+    scene.add(rimLight);
   }
 
-  update(_dt: number) {
+  update(dt: number) {
     const t = performance.now() * 0.001;
     // Hero: slow twist
     if (this.objects[0]) {
