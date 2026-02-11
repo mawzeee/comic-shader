@@ -23,10 +23,23 @@ interface PresetColors {
   fogDensity: number;
 }
 
+interface PresetUI {
+  title: string;
+  desc: string;
+  fontFamily: string;
+  fontSize: string;
+  fontWeight: string;
+  fontStyle: string;
+  letterSpacing: string;
+  titleColor: string;
+  descColor: string;
+}
+
 interface Preset {
   name: string;
   values: Record<string, number>;
   colors: PresetColors;
+  ui: PresetUI;
 }
 
 const presets: Preset[] = [
@@ -48,6 +61,17 @@ const presets: Preset[] = [
       fog: 0xf0ebe0,
       fogDensity: 0.012,
     },
+    ui: {
+      title: 'COMIC BOOK',
+      desc: 'Real-time post-processing combining cel shading, Ben-Day halftone, CMYK misregistration, and hand-drawn line wobble.',
+      fontFamily: "'RG WideBlack', sans-serif",
+      fontSize: '56px',
+      fontWeight: 'normal',
+      fontStyle: 'normal',
+      letterSpacing: '-1px',
+      titleColor: '#202020',
+      descColor: '#202020',
+    },
   },
   {
     name: 'Pop Art',
@@ -66,6 +90,17 @@ const presets: Preset[] = [
       ground: 0xf0e8d0,
       fog: 0xf5edd0,
       fogDensity: 0.008,
+    },
+    ui: {
+      title: 'POP ART',
+      desc: 'Bold color blocking with oversized Ben-Day dots and heavy outlines. Warhol meets Lichtenstein.',
+      fontFamily: "'RG WideBlack', sans-serif",
+      fontSize: '56px',
+      fontWeight: 'normal',
+      fontStyle: 'normal',
+      letterSpacing: '-1px',
+      titleColor: '#202020',
+      descColor: '#202020',
     },
   },
   {
@@ -86,6 +121,17 @@ const presets: Preset[] = [
       fog: 0x201828,
       fogDensity: 0.035,
     },
+    ui: {
+      title: 'NOIR',
+      desc: 'High-contrast black & white with dramatic ink pooling, deep shadows, and textured paper grain.',
+      fontFamily: "'RG WideBlack', sans-serif",
+      fontSize: '56px',
+      fontWeight: 'normal',
+      fontStyle: 'normal',
+      letterSpacing: '-1px',
+      titleColor: '#e8e0d0',
+      descColor: '#a09888',
+    },
   },
   {
     name: 'Manga',
@@ -104,6 +150,17 @@ const presets: Preset[] = [
       ground: 0xd8d5d0,
       fog: 0xe0ddd8,
       fogDensity: 0.012,
+    },
+    ui: {
+      title: 'MANGA',
+      desc: 'Japanese ink style with fine screentone, crisp edges, and desaturated tonal range.',
+      fontFamily: "'RG WideBlack', sans-serif",
+      fontSize: '56px',
+      fontWeight: 'normal',
+      fontStyle: 'normal',
+      letterSpacing: '-1px',
+      titleColor: '#202020',
+      descColor: '#202020',
     },
   },
   {
@@ -124,6 +181,17 @@ const presets: Preset[] = [
       fog: 0xd0c0a5,
       fogDensity: 0.015,
     },
+    ui: {
+      title: 'VINTAGE PRINT',
+      desc: 'Faded four-color process with heavy paper texture, slight misregistration, and aged yellowing.',
+      fontFamily: "'RG WideBlack', sans-serif",
+      fontSize: '56px',
+      fontWeight: 'normal',
+      fontStyle: 'normal',
+      letterSpacing: '-1px',
+      titleColor: '#202020',
+      descColor: '#202020',
+    },
   },
   {
     name: 'Clean',
@@ -142,6 +210,17 @@ const presets: Preset[] = [
       ground: 0xeeeeee,
       fog: 0xf2f2f2,
       fogDensity: 0.006,
+    },
+    ui: {
+      title: 'CLEAN',
+      desc: 'Pure cel shading with sharp outlines. No halftone, no paper, no grit \u2014 just clean vector style.',
+      fontFamily: "'RG WideBlack', sans-serif",
+      fontSize: '56px',
+      fontWeight: 'normal',
+      fontStyle: 'normal',
+      letterSpacing: '-1px',
+      titleColor: '#202020',
+      descColor: '#202020',
     },
   },
 ];
@@ -228,6 +307,45 @@ function updateColorAnimation() {
   if (t >= 1) colorAnim.active = false;
 }
 
+// ─── Preset UI (title/font/desc swap) ────────────────
+
+const headerH1 = document.querySelector('#header h1') as HTMLElement;
+const headerP = document.querySelector('#header p') as HTMLElement;
+
+function setHeaderStyles(ui: PresetUI) {
+  headerH1.textContent = ui.title;
+  headerH1.style.fontFamily = ui.fontFamily;
+  headerH1.style.fontSize = ui.fontSize;
+  headerH1.style.fontWeight = ui.fontWeight;
+  headerH1.style.fontStyle = ui.fontStyle;
+  headerH1.style.letterSpacing = ui.letterSpacing;
+  headerH1.style.color = ui.titleColor;
+  headerP.textContent = ui.desc;
+  headerP.style.color = ui.descColor;
+}
+
+function applyPresetUI(ui: PresetUI, animate: boolean) {
+  if (!animate) {
+    setHeaderStyles(ui);
+    return;
+  }
+
+  // Fade out
+  headerH1.style.opacity = '0';
+  headerP.style.opacity = '0';
+
+  setTimeout(() => {
+    // Swap content & styles while invisible
+    setHeaderStyles(ui);
+
+    // Fade in (use rAF to ensure style flush)
+    requestAnimationFrame(() => {
+      headerH1.style.opacity = '1';
+      headerP.style.opacity = '1';
+    });
+  }, 180);
+}
+
 // ─── Preset animation ────────────────────────────────
 
 let presetAnimationId: number | null = null;
@@ -294,6 +412,7 @@ presets.forEach((preset, i) => {
     activeBtn = btn;
     activePresetIndex = i;
     applyPreset(preset);
+    applyPresetUI(preset.ui, true);
     setLensPreset(presets[contrastMap[i]]);
   });
   presetsEl.appendChild(btn);
@@ -407,6 +526,7 @@ setTimeout(() => {
   flash.classList.add('visible');
   setTimeout(() => {
     applyPreset(presets[0], false);
+    applyPresetUI(presets[0].ui, false);
     updateGuiFromUniforms();
     setLensPreset(presets[contrastMap[0]]);
     flash.classList.remove('visible');

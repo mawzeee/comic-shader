@@ -1,10 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');
 
 @font-face {
-  font-family: 'Star Jedi SE';
-  src: url('/fonts/STJEDISE.TTF') format('truetype');
-  font-weight: normal;
-  font-style: normal;
+  font-family: 'RG WideBlack';
+  src: url('/fonts/PPRightGrotesk-WideBlack.otf') format('opentype');
+}
+@font-face {
+  font-family: 'RG CompactBlack';
+  src: url('/fonts/PPRightGrotesk-CompactBlack.otf') format('opentype');
 }
 
 * {
@@ -47,12 +49,14 @@ canvas#canvas {
 }
 
 #header h1 {
-  font-family: 'Bangers', cursive;
-  font-size: 52px;
+  font-family: 'RG WideBlack', sans-serif;
+  font-size: 56px;
   color: #202020;
-  letter-spacing: 3px;
+  letter-spacing: -1px;
   line-height: 1;
   margin-bottom: 6px;
+  transition: opacity 0.18s ease;
+  text-transform: uppercase;
 }
 
 #header p {
@@ -61,6 +65,7 @@ canvas#canvas {
   font-weight: 300;
   max-width: 320px;
   line-height: 1.5;
+  transition: opacity 0.18s ease;
 }
 
 /* Presets */
@@ -84,7 +89,7 @@ canvas#canvas {
   color: #1a1a1a;
   padding: 7px 18px 6px;
   border-radius: 2px;
-  font-family: 'Bangers', cursive;
+  font-family: 'RG CompactBlack', sans-serif;
   font-size: 15px;
   letter-spacing: 1.2px;
   cursor: pointer;
@@ -175,7 +180,7 @@ canvas#canvas {
   color: #1a1a1a;
   padding: 7px 18px 6px;
   border-radius: 2px;
-  font-family: 'Bangers', cursive;
+  font-family: 'RG CompactBlack', sans-serif;
   font-size: 15px;
   letter-spacing: 1.2px;
   cursor: pointer;
@@ -211,7 +216,7 @@ canvas#canvas {
   color: #1a1a1a;
   padding: 7px 18px 6px;
   border-radius: 2px;
-  font-family: 'Bangers', cursive;
+  font-family: 'RG CompactBlack', sans-serif;
   font-size: 15px;
   letter-spacing: 1.2px;
   cursor: pointer;
