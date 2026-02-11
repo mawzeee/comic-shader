@@ -397,15 +397,39 @@ function applyPreset(preset: Preset, animate = true) {
   presetAnimationId = requestAnimationFrame(step);
 }
 
-// ─── Preset buttons ─────────────────────────────────
+// ─── Preset buttons (unified toggle bar) ────────────
 
 const presetsEl = document.getElementById('presets')!;
 let activeBtn: HTMLElement | null = null;
+const presetBtns: HTMLButtonElement[] = [];
+
+// Sliding indicator
+const indicator = document.createElement('div');
+indicator.className = 'preset-indicator';
+presetsEl.appendChild(indicator);
+
+// Preview popup
+const previewEl = document.createElement('div');
+previewEl.className = 'preset-preview';
+const previewImg = document.createElement('img');
+previewImg.alt = '';
+previewEl.appendChild(previewImg);
+presetsEl.appendChild(previewEl);
+
+const previewThumbnails: string[] = [];
+
+function updateIndicator(btn: HTMLElement) {
+  indicator.style.left = btn.offsetLeft + 'px';
+  indicator.style.width = btn.offsetWidth + 'px';
+}
+
+let hoverTimeout: ReturnType<typeof setTimeout> | null = null;
 
 presets.forEach((preset, i) => {
   const btn = document.createElement('button');
   btn.className = 'preset-btn' + (i === 0 ? ' active' : '');
   btn.textContent = preset.name;
+
   btn.addEventListener('click', () => {
     if (activeBtn) activeBtn.classList.remove('active');
     btn.classList.add('active');
@@ -414,10 +438,61 @@ presets.forEach((preset, i) => {
     applyPreset(preset);
     applyPresetUI(preset.ui, true);
     setLensPreset(presets[contrastMap[i]]);
+    updateIndicator(btn);
   });
+
+  btn.addEventListener('mouseenter', () => {
+    if (!previewThumbnails[i]) return;
+    previewImg.src = previewThumbnails[i];
+    const btnCenter = btn.offsetLeft + btn.offsetWidth / 2;
+    const previewWidth = 200;
+    let left = btnCenter - previewWidth / 2;
+    left = Math.max(4, Math.min(left, presetsEl.offsetWidth - previewWidth - 4));
+    previewEl.style.left = left + 'px';
+    hoverTimeout = setTimeout(() => previewEl.classList.add('visible'), 250);
+  });
+
+  btn.addEventListener('mouseleave', () => {
+    if (hoverTimeout) { clearTimeout(hoverTimeout); hoverTimeout = null; }
+    previewEl.classList.remove('visible');
+  });
+
   presetsEl.appendChild(btn);
-  if (i === 0) activeBtn = btn;
+  presetBtns.push(btn);
+  if (i === 0) {
+    activeBtn = btn;
+    requestAnimationFrame(() => updateIndicator(btn));
+  }
 });
+
+// Capture preview thumbnails for each preset
+function capturePreviewThumbnails() {
+  const origIndex = activePresetIndex;
+  const origPreset = presets[origIndex];
+
+  for (let i = 0; i < presets.length; i++) {
+    const p = presets[i];
+    for (const key of Object.keys(p.values)) {
+      (u[key] as { value: number }).value = p.values[key];
+    }
+    applyPresetColors(p.colors, false);
+    engine.composer.render();
+
+    const tmp = document.createElement('canvas');
+    tmp.width = 400;
+    tmp.height = 260;
+    const ctx = tmp.getContext('2d')!;
+    ctx.drawImage(canvas, 0, 0, tmp.width, tmp.height);
+    previewThumbnails.push(tmp.toDataURL('image/jpeg', 0.7));
+  }
+
+  // Restore original
+  for (const key of Object.keys(origPreset.values)) {
+    (u[key] as { value: number }).value = origPreset.values[key];
+  }
+  applyPresetColors(origPreset.colors, false);
+  engine.composer.render();
+}
 
 // ─── GUI ─────────────────────────────────────────────
 
@@ -530,6 +605,9 @@ setTimeout(() => {
     updateGuiFromUniforms();
     setLensPreset(presets[contrastMap[0]]);
     flash.classList.remove('visible');
+
+    // Capture thumbnails once the scene is revealed
+    setTimeout(() => capturePreviewThumbnails(), 800);
   }, 300);
 }, 1200);
 

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @font-face {
   font-family: 'RG WideBlack';
@@ -68,7 +68,7 @@ canvas#canvas {
   transition: opacity 0.18s ease;
 }
 
-/* Presets */
+/* Presets — unified toggle bar */
 
 #presets {
   position: absolute;
@@ -76,41 +76,112 @@ canvas#canvas {
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 2px;
   justify-content: center;
-  max-width: 500px;
   pointer-events: auto;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 50px;
+  padding: 4px;
 }
 
 .preset-btn {
-  background: rgba(255, 252, 245, 0.88);
-  border: 2.5px solid #1a1a1a;
-  color: #1a1a1a;
-  padding: 7px 18px 6px;
-  border-radius: 2px;
-  font-family: 'RG CompactBlack', sans-serif;
-  font-size: 15px;
-  letter-spacing: 1.2px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  padding: 10px 16px;
+  border-radius: 46px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.25s ease;
   text-transform: uppercase;
-  box-shadow: 3px 3px 0 #1a1a1a;
   position: relative;
+  z-index: 2;
+  white-space: nowrap;
 }
 
 .preset-btn:hover {
-  background: #fff;
-  transform: translate(-1px, -1px);
-  box-shadow: 4px 4px 0 #1a1a1a;
+  color: rgba(255, 255, 255, 0.9);
+  animation: wobble 0.5s ease-out;
 }
 
 .preset-btn.active {
-  background: #1a1a1a;
-  color: #fffcf5;
-  border-color: #1a1a1a;
-  box-shadow: 2px 2px 0 rgba(0,0,0,0.3);
-  transform: translate(1px, 1px);
+  color: #fff;
+}
+
+@keyframes wobble {
+  0% { transform: scale(1); }
+  15% { transform: scale(1.06) rotate(-1.5deg); }
+  30% { transform: scale(0.97) rotate(1deg); }
+  45% { transform: scale(1.02) rotate(-0.5deg); }
+  60% { transform: scale(0.99) rotate(0.3deg); }
+  75% { transform: scale(1.01); }
+  100% { transform: scale(1); }
+}
+
+/* Sliding indicator behind active button */
+.preset-indicator {
+  position: absolute;
+  height: calc(100% - 8px);
+  top: 4px;
+  border-radius: 42px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Preview popup — morphs from the bar */
+.preset-preview {
+  position: absolute;
+  bottom: calc(100% + 16px);
+  width: 200px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: visible;
+  opacity: 0;
+  transform: translateY(10px) scale(0.92);
+  transform-origin: bottom center;
+  transition: opacity 0.2s ease,
+              transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+  z-index: 100;
+  padding: 5px;
+}
+
+.preset-preview.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.preset-preview img {
+  width: 100%;
+  display: block;
+  border-radius: 12px;
+}
+
+/* Morph connector stem */
+.preset-preview::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  background: rgba(0, 0, 0, 0.7);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transform: translateX(-50%) rotate(45deg);
 }
 
 /* Credits */
@@ -124,15 +195,17 @@ canvas#canvas {
 }
 
 #credits a {
-  color: rgba(255,255,255,0.4);
+  color: rgba(255,255,255,0.3);
   text-decoration: none;
-  font-size: 11px;
-  font-weight: 300;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.3px;
   transition: color 0.2s;
 }
 
 #credits a:hover {
-  color: rgba(255,255,255,0.7);
+  color: rgba(255,255,255,0.6);
 }
 
 /* Reveal flash */
@@ -160,6 +233,13 @@ canvas#canvas {
   }
   .preset-btn {
     transition: none;
+    animation: none !important;
+  }
+  .preset-indicator {
+    transition: none;
+  }
+  .preset-preview {
+    transition: none;
   }
 }
 
@@ -175,33 +255,38 @@ canvas#canvas {
 }
 
 .lens-btn {
-  background: rgba(255, 252, 245, 0.88);
-  border: 2.5px solid #1a1a1a;
-  color: #1a1a1a;
-  padding: 7px 18px 6px;
-  border-radius: 2px;
-  font-family: 'RG CompactBlack', sans-serif;
-  font-size: 15px;
-  letter-spacing: 1.2px;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   text-transform: uppercase;
   user-select: none;
-  box-shadow: 3px 3px 0 #1a1a1a;
+  box-shadow: none;
 }
 
 .lens-btn:hover {
-  background: #fff;
-  transform: translate(-1px, -1px);
-  box-shadow: 4px 4px 0 #1a1a1a;
+  background: rgba(0, 0, 0, 0.55);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: rgba(255, 255, 255, 0.95);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .lens-btn.active {
-  background: #1a1a1a;
-  color: #fffcf5;
-  border-color: #1a1a1a;
-  box-shadow: 2px 2px 0 rgba(0,0,0,0.3);
-  transform: translate(1px, 1px);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transform: none;
 }
 
 /* Compare toggle */
@@ -211,50 +296,57 @@ canvas#canvas {
   bottom: 36px;
   left: 36px;
   pointer-events: auto;
-  background: rgba(255, 252, 245, 0.88);
-  border: 2.5px solid #1a1a1a;
-  color: #1a1a1a;
-  padding: 7px 18px 6px;
-  border-radius: 2px;
-  font-family: 'RG CompactBlack', sans-serif;
-  font-size: 15px;
-  letter-spacing: 1.2px;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   text-transform: uppercase;
   user-select: none;
-  box-shadow: 3px 3px 0 #1a1a1a;
+  box-shadow: none;
 }
 
 #compare:hover {
-  background: #fff;
-  transform: translate(-1px, -1px);
-  box-shadow: 4px 4px 0 #1a1a1a;
+  background: rgba(0, 0, 0, 0.55);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: rgba(255, 255, 255, 0.95);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 #compare.active {
-  background: #1a1a1a;
-  color: #fffcf5;
-  border-color: #1a1a1a;
-  box-shadow: 2px 2px 0 rgba(0,0,0,0.3);
-  transform: translate(1px, 1px);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transform: none;
 }
 
 .key-hint {
   display: inline-block;
-  background: rgba(0,0,0,0.1);
-  padding: 1px 6px;
-  border-radius: 2px;
-  font-family: 'Inter', sans-serif;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 9px;
-  font-weight: 500;
+  font-weight: 400;
   margin-left: 8px;
   vertical-align: middle;
-  letter-spacing: 0;
+  letter-spacing: 0.5px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 #compare.active .key-hint {
-  background: rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.15);
 }
 
 /* lil-gui override: move to right side, make smaller */
