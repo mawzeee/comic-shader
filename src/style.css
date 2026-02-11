@@ -1,5 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@300;400;500&display=swap');
 
+@font-face {
+  font-family: 'Star Jedi SE';
+  src: url('/fonts/STJEDISE.TTF') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -42,20 +49,15 @@ canvas#canvas {
 #header h1 {
   font-family: 'Bangers', cursive;
   font-size: 52px;
-  color: #fff;
+  color: #202020;
   letter-spacing: 3px;
-  text-shadow:
-    3px 3px 0 #1a1a1a,
-    -1px -1px 0 #1a1a1a,
-    1px -1px 0 #1a1a1a,
-    -1px 1px 0 #1a1a1a;
   line-height: 1;
   margin-bottom: 6px;
 }
 
 #header p {
   font-size: 13px;
-  color: rgba(255,255,255,0.55);
+  color: #202020;
   font-weight: 300;
   max-width: 320px;
   line-height: 1.5;
@@ -66,40 +68,44 @@ canvas#canvas {
 #presets {
   position: absolute;
   bottom: 36px;
-  left: 36px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  justify-content: center;
   max-width: 500px;
   pointer-events: auto;
 }
 
 .preset-btn {
-  background: rgba(255,255,255,0.1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.15);
-  color: #fff;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.5px;
+  background: rgba(255, 252, 245, 0.88);
+  border: 2.5px solid #1a1a1a;
+  color: #1a1a1a;
+  padding: 7px 18px 6px;
+  border-radius: 2px;
+  font-family: 'Bangers', cursive;
+  font-size: 15px;
+  letter-spacing: 1.2px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   text-transform: uppercase;
+  box-shadow: 3px 3px 0 #1a1a1a;
+  position: relative;
 }
 
 .preset-btn:hover {
-  background: rgba(255,255,255,0.2);
-  border-color: rgba(255,255,255,0.35);
+  background: #fff;
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 #1a1a1a;
 }
 
 .preset-btn.active {
-  background: rgba(255,255,255,0.9);
-  color: #1a1a1a;
-  border-color: #fff;
+  background: #1a1a1a;
+  color: #fffcf5;
+  border-color: #1a1a1a;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+  transform: translate(1px, 1px);
 }
 
 /* Credits */
@@ -152,82 +158,98 @@ canvas#canvas {
   }
 }
 
-/* Lens mode toggle */
+/* Lens mode buttons */
 
-#lens-mode {
+#lens-modes {
   position: absolute;
   bottom: 36px;
-  right: 120px;
+  right: 36px;
+  display: flex;
+  gap: 8px;
   pointer-events: auto;
-  background: rgba(255,255,255,0.1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.15);
-  color: #fff;
-  padding: 8px 18px;
-  border-radius: 6px;
-  font-family: 'Bangers', cursive;
-  font-size: 14px;
-  letter-spacing: 1.5px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  user-select: none;
 }
 
-#lens-mode:hover {
-  background: rgba(255,255,255,0.2);
-  border-color: rgba(255,255,255,0.35);
+.lens-btn {
+  background: rgba(255, 252, 245, 0.88);
+  border: 2.5px solid #1a1a1a;
+  color: #1a1a1a;
+  padding: 7px 18px 6px;
+  border-radius: 2px;
+  font-family: 'Bangers', cursive;
+  font-size: 15px;
+  letter-spacing: 1.2px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-transform: uppercase;
+  user-select: none;
+  box-shadow: 3px 3px 0 #1a1a1a;
+}
+
+.lens-btn:hover {
+  background: #fff;
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 #1a1a1a;
+}
+
+.lens-btn.active {
+  background: #1a1a1a;
+  color: #fffcf5;
+  border-color: #1a1a1a;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+  transform: translate(1px, 1px);
 }
 
 /* Compare toggle */
 
 #compare {
   position: absolute;
-  bottom: 90px;
+  bottom: 36px;
   left: 36px;
   pointer-events: auto;
-  background: rgba(255,255,255,0.1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.15);
-  color: rgba(255,255,255,0.6);
-  padding: 8px 18px;
-  border-radius: 6px;
-  font-family: 'Inter', sans-serif;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.5px;
+  background: rgba(255, 252, 245, 0.88);
+  border: 2.5px solid #1a1a1a;
+  color: #1a1a1a;
+  padding: 7px 18px 6px;
+  border-radius: 2px;
+  font-family: 'Bangers', cursive;
+  font-size: 15px;
+  letter-spacing: 1.2px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   text-transform: uppercase;
   user-select: none;
+  box-shadow: 3px 3px 0 #1a1a1a;
 }
 
 #compare:hover {
-  background: rgba(255,255,255,0.2);
-  border-color: rgba(255,255,255,0.35);
-  color: #fff;
+  background: #fff;
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 #1a1a1a;
 }
 
 #compare.active {
-  background: rgba(255,255,255,0.85);
-  color: #1a1a1a;
-  border-color: #fff;
+  background: #1a1a1a;
+  color: #fffcf5;
+  border-color: #1a1a1a;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+  transform: translate(1px, 1px);
 }
 
 .key-hint {
   display: inline-block;
-  background: rgba(255,255,255,0.15);
-  padding: 1px 5px;
-  border-radius: 3px;
+  background: rgba(0,0,0,0.1);
+  padding: 1px 6px;
+  border-radius: 2px;
+  font-family: 'Inter', sans-serif;
   font-size: 9px;
-  margin-left: 6px;
+  font-weight: 500;
+  margin-left: 8px;
   vertical-align: middle;
   letter-spacing: 0;
 }
 
 #compare.active .key-hint {
-  background: rgba(0,0,0,0.1);
+  background: rgba(255,255,255,0.15);
 }
 
 /* lil-gui override: move to right side, make smaller */

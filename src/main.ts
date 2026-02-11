@@ -418,15 +418,25 @@ setTimeout(() => {
 const lensModes = ['PENCIL', 'X-RAY', 'VOID'];
 let lensMode = 0;
 
-const lensModeEl = document.createElement('div');
-lensModeEl.id = 'lens-mode';
-lensModeEl.textContent = lensModes[0];
-lensModeEl.addEventListener('click', () => {
-  lensMode = (lensMode + 1) % 3;
-  u.uLensMode.value = lensMode;
-  lensModeEl.textContent = lensModes[lensMode];
+const lensContainer = document.createElement('div');
+lensContainer.id = 'lens-modes';
+const lensBtns: HTMLButtonElement[] = [];
+
+lensModes.forEach((mode, i) => {
+  const btn = document.createElement('button');
+  btn.className = 'lens-btn' + (i === 0 ? ' active' : '');
+  btn.textContent = mode;
+  btn.addEventListener('click', () => {
+    lensMode = i;
+    u.uLensMode.value = lensMode;
+    lensBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+  lensContainer.appendChild(btn);
+  lensBtns.push(btn);
 });
-document.getElementById('overlay')!.appendChild(lensModeEl);
+
+document.getElementById('overlay')!.appendChild(lensContainer);
 
 window.addEventListener('keydown', (e) => {
   if (e.key === '1') { lensMode = 0; }
@@ -434,7 +444,8 @@ window.addEventListener('keydown', (e) => {
   else if (e.key === '3') { lensMode = 2; }
   else return;
   u.uLensMode.value = lensMode;
-  lensModeEl.textContent = lensModes[lensMode];
+  lensBtns.forEach(b => b.classList.remove('active'));
+  lensBtns[lensMode].classList.add('active');
 });
 
 // ─── Compare toggle (hold to see raw 3D) ────────────

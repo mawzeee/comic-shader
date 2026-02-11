@@ -12,7 +12,7 @@ export class ComicScene {
   }
 
   private createGround(scene: THREE.Scene): THREE.MeshStandardMaterial {
-    const geo = new THREE.PlaneGeometry(120, 120);
+    const geo = new THREE.PlaneGeometry(500, 500);
     const mat = new THREE.MeshStandardMaterial({
       color: 0xe8dfd0,
       roughness: 0.95,
