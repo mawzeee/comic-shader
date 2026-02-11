@@ -179,6 +179,57 @@ canvas#canvas {
   border-color: rgba(255,255,255,0.35);
 }
 
+/* Compare toggle */
+
+#compare {
+  position: absolute;
+  bottom: 90px;
+  left: 36px;
+  pointer-events: auto;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.6);
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+#compare:hover {
+  background: rgba(255,255,255,0.2);
+  border-color: rgba(255,255,255,0.35);
+  color: #fff;
+}
+
+#compare.active {
+  background: rgba(255,255,255,0.85);
+  color: #1a1a1a;
+  border-color: #fff;
+}
+
+.key-hint {
+  display: inline-block;
+  background: rgba(255,255,255,0.15);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 9px;
+  margin-left: 6px;
+  vertical-align: middle;
+  letter-spacing: 0;
+}
+
+#compare.active .key-hint {
+  background: rgba(0,0,0,0.1);
+}
+
 /* lil-gui override: move to right side, make smaller */
 .lil-gui.root {
   position: fixed !important;

@@ -27,6 +27,7 @@ export class Engine {
     // Scene
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xf5f0e8);
+    this.scene.fog = new THREE.FogExp2(0xf0ebe0, 0.012);
 
     // Camera
     this.camera = new THREE.PerspectiveCamera(
@@ -75,6 +76,10 @@ export class Engine {
     this.composer.addPass(pass);
   }
 
+  renderDirect() {
+    this.renderer.render(this.scene, this.camera);
+  }
+
   private onResize() {
     const w = window.innerWidth;
     const h = window.innerHeight;
@@ -97,9 +102,7 @@ export class Engine {
     const animate = () => {
       requestAnimationFrame(animate);
       const dt = clock.getDelta();
-      this.controls.update();
       if (onUpdate) onUpdate(dt);
-      this.composer.render();
     };
     animate();
   }

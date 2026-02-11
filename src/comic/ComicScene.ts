@@ -2,15 +2,17 @@ import * as THREE from 'three';
 
 export class ComicScene {
   private objects: THREE.Mesh[] = [];
+  /** Exposed so main.ts can animate ground color per preset */
+  groundMat: THREE.MeshStandardMaterial;
 
   constructor(scene: THREE.Scene) {
-    this.createGround(scene);
+    this.groundMat = this.createGround(scene);
     this.createShapes(scene);
     this.createLights(scene);
   }
 
-  private createGround(scene: THREE.Scene) {
-    const geo = new THREE.PlaneGeometry(30, 30);
+  private createGround(scene: THREE.Scene): THREE.MeshStandardMaterial {
+    const geo = new THREE.PlaneGeometry(120, 120);
     const mat = new THREE.MeshStandardMaterial({
       color: 0xe8dfd0,
       roughness: 0.95,
@@ -20,6 +22,7 @@ export class ComicScene {
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
     scene.add(ground);
+    return mat;
   }
 
   private createShapes(scene: THREE.Scene) {

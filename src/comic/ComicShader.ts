@@ -36,6 +36,12 @@ uniform float uEnableHalftone;
 uniform float uEnableWobble;
 uniform float uEnableCmyk;
 uniform float uEnablePaper;
+uniform float uHalftoneIntensity;
+uniform float uOutlineVariation;
+uniform float uSpecularPop;
+uniform float uRimStrength;
+uniform float uRimThreshold;
+uniform float uColorPunch;
 
 // Lens style
 uniform float uLOutlineThickness;
@@ -54,6 +60,12 @@ uniform float uLEnableHalftone;
 uniform float uLEnableWobble;
 uniform float uLEnableCmyk;
 uniform float uLEnablePaper;
+uniform float uLHalftoneIntensity;
+uniform float uLOutlineVariation;
+uniform float uLSpecularPop;
+uniform float uLRimStrength;
+uniform float uLRimThreshold;
+uniform float uLColorPunch;
 
 // Lens geometry
 uniform float uLensRadius;
@@ -83,6 +95,12 @@ struct Style {
   float enableWobble;
   float enableCmyk;
   float enablePaper;
+  float halftoneIntensity;
+  float outlineVariation;
+  float specularPop;
+  float rimStrength;
+  float rimThreshold;
+  float colorPunch;
 };
 
 // ─── Noise ───────────────────────────────────────────
@@ -210,33 +228,68 @@ vec3 applyStyle(vec2 baseUv, vec2 texel, Style s) {
 
   vec3 color = texture(uDiffuse, uv).rgb;
 
-  // Cel shading
+  // Cel shading with specular pops + rim highlights
   if (s.enableCelShading > 0.5) {
     float l = luma(color);
     float bands = s.celBands;
+    float topBand = (bands - 0.5) / bands;
+    // Detect specular: luma above top band boundary
+    float specular = smoothstep(topBand - 0.05, topBand + 0.05, l);
     float qv = (floor(l * bands) + 0.5) / bands;
     qv = 0.12 + qv * 0.88;
     float sc = qv / max(l, 0.001);
     color = clamp(color * sc, 0.0, 1.0);
+    // Punch specular back as hard white
+    color = mix(color, vec3(1.0), specular * s.specularPop);
+    // Rim light from normal buffer: view-space normal.z near 0 → bright edge halo
+    vec3 norm = texture(uNormalBuffer, uv).rgb * 2.0 - 1.0;
+    float rim = 1.0 - abs(norm.z);
+    rim = smoothstep(s.rimThreshold, s.rimThreshold + 0.25, rim);
+    color += vec3(rim * s.rimStrength);
+    color = clamp(color, 0.0, 1.0);
   }
 
-  // Halftone in shadows
-  if (s.enableHalftone > 0.5) {
-    float l = luma(color);
-    float shadow = smoothstep(0.55, 0.25, l) * (1.0 - smoothstep(0.15, 0.05, l));
-    if (shadow > 0.01) {
-      vec2 fc = uv * uResolution;
-      float dr = shadow * s.halftoneSize * 0.38;
-      float dv = halftonePattern(fc, s.halftoneSize, s.halftoneAngle, dr);
-      vec3 dotted = color * (1.0 - dv * 0.4);
-      color = mix(color, dotted, shadow * 0.7);
-    }
+  // CMYK Ben-Day halftone
+  if (s.enableHalftone > 0.5 && s.halftoneIntensity > 0.001) {
+    vec2 fc = uv * uResolution;
+    vec4 cmyk = rgb2cmyk(color);
+    float grid = s.halftoneSize;
+    float baseAng = s.halftoneAngle;
+    // Classic screen angles: C=15°, M=75°, Y=0°, K=45°
+    float angC = baseAng + radians(15.0);
+    float angM = baseAng + radians(75.0);
+    float angY = baseAng + radians(0.0);
+    float angK = baseAng + radians(45.0);
+    // Dot radius per channel = ink value × max radius
+    float maxRad = grid * 0.45;
+    float hC = halftonePattern(fc, grid, angC, cmyk.x * maxRad);
+    float hM = halftonePattern(fc, grid, angM, cmyk.y * maxRad);
+    float hY = halftonePattern(fc, grid, angY, cmyk.z * maxRad);
+    float hK = halftonePattern(fc, grid * 0.85, angK, cmyk.w * maxRad);
+    // Reconstruct: where dots print, ink is full; elsewhere, paper white
+    vec4 halftoned = vec4(hC, hM, hY, hK);
+    vec3 htColor = cmyk2rgb(halftoned);
+    color = mix(color, htColor, s.halftoneIntensity);
   }
 
   // Saturation boost
   vec3 hsv = rgb2hsv(color);
   hsv.y = clamp(hsv.y * (1.0 + s.saturationBoost), 0.0, 1.0);
   color = hsv2rgb(hsv);
+
+  // Color punch: quantize hue toward 6 comic primaries, snap saturation
+  if (s.colorPunch > 0.001) {
+    vec3 punchHsv = rgb2hsv(color);
+    if (punchHsv.y > 0.05) {
+      // Snap hue to nearest of 6 primaries: R(0), Y(1/6), G(2/6), C(3/6), B(4/6), M(5/6)
+      float qHue = floor(punchHsv.x * 6.0 + 0.5) / 6.0;
+      punchHsv.x = mix(punchHsv.x, qHue, s.colorPunch);
+      // Snap saturation toward 0 or 1 (eliminate muddy mid-sat)
+      float snapSat = punchHsv.y > 0.35 ? 1.0 : 0.0;
+      punchHsv.y = mix(punchHsv.y, snapSat, s.colorPunch * 0.6);
+    }
+    color = hsv2rgb(punchHsv);
+  }
 
   // Outlines (Sobel on normals + depth)
   if (s.enableOutlines > 0.5) {
@@ -275,9 +328,32 @@ vec3 applyStyle(vec2 baseUv, vec2 texel, Style s) {
     float de = (abs(dgx) + abs(dgy)) / (cd * cd * 0.12 + cd * 0.3 + 0.15);
 
     ne = min(ne, 3.0);
-    float edge = max(ne * 0.25, de * 1.2);
-    edge = smoothstep(s.outlineThreshold, s.outlineThreshold + 0.5, edge);
-    color = mix(color, vec3(0.05, 0.03, 0.02), edge);
+    // Separate edges: depth = silhouette (thick), normal = crease (thin)
+    float silhouette = smoothstep(s.outlineThreshold, s.outlineThreshold + 0.4, de * 1.2);
+    float crease = smoothstep(s.outlineThreshold + 0.1, s.outlineThreshold + 0.6, ne * 0.25);
+
+    // Ink pooling: where both silhouette + crease are strong, add extra weight
+    float pooling = smoothstep(0.1, 0.6, silhouette * crease) * 0.5;
+
+    // Fresnel thickening: normals facing away (normal.z near 0) → thicker
+    vec3 centerNorm = texture(uNormalBuffer, uv).rgb * 2.0 - 1.0;
+    float fresnel = 1.0 - abs(centerNorm.z);
+    float fresnelThick = smoothstep(0.5, 0.9, fresnel) * 0.3;
+
+    // Variable weight: silhouette is thicker, crease is thinner
+    float variableEdge = max(silhouette * 1.0, crease * 0.6) + pooling + fresnelThick;
+    variableEdge = clamp(variableEdge, 0.0, 1.0);
+
+    // Uniform edge fallback
+    float uniformEdge = max(ne * 0.25, de * 1.2);
+    uniformEdge = smoothstep(s.outlineThreshold, s.outlineThreshold + 0.5, uniformEdge);
+
+    // Blend between uniform and variable
+    float edge = mix(uniformEdge, variableEdge, s.outlineVariation);
+
+    // Ink color darkens at pooling spots
+    vec3 inkColor = mix(vec3(0.05, 0.03, 0.02), vec3(0.02, 0.01, 0.005), pooling * s.outlineVariation);
+    color = mix(color, inkColor, edge);
   }
 
   // CMYK misregistration
@@ -300,18 +376,32 @@ vec3 applyStyle(vec2 baseUv, vec2 texel, Style s) {
     color = cmyk2rgb(misreg);
   }
 
-  // Paper texture
+  // Rich paper texture
   if (s.enablePaper > 0.5) {
     vec2 paperCoord = baseUv * uResolution * 0.15;
-    float grain = fbm(paperCoord * 3.0) * 0.5 + 0.5;
-    float fiber = noise(vec2(paperCoord.x * 4.0, paperCoord.y * 0.5)) * 0.5 + 0.5;
-    float paper = mix(grain, fiber, 0.3);
-    vec3 paperColor = vec3(0.95, 0.92, 0.85);
-    color = color * mix(vec3(1.0), vec3(paper * 0.3 + 0.7), s.paperStrength);
-    color = mix(color, color * paperColor, s.paperStrength * 0.5);
+    // Fiber: directional noise stretched horizontal (paper grain direction)
+    float fiber = noise(vec2(paperCoord.x * 6.0, paperCoord.y * 0.8)) * 0.5 + 0.5;
+    fiber = mix(fiber, noise(vec2(paperCoord.x * 3.0 + 17.0, paperCoord.y * 1.2)), 0.3);
+    // Absorption: large-scale fbm modulates ink density variation
+    float absorption = fbm(paperCoord * 1.5) * 0.5 + 0.5;
+    // Tooth: high-frequency noise for micro-roughness
+    float tooth = noise(paperCoord * 12.0) * 0.5 + 0.5;
+    // Combined paper texture
+    float paper = fiber * 0.45 + absorption * 0.35 + tooth * 0.2;
+    // Apply ink density variation (absorption makes some areas soak more ink)
+    color = color * mix(vec3(1.0), vec3(paper * 0.35 + 0.65), s.paperStrength);
+    // Age tint: warm yellowing heavier at edges
+    vec2 edgeDist = abs(baseUv - 0.5) * 2.0;
+    float edgeFactor = max(edgeDist.x, edgeDist.y);
+    float ageFactor = mix(0.3, 1.0, edgeFactor * edgeFactor);
+    vec3 agedPaper = vec3(0.94, 0.89, 0.78); // warm yellowish
+    vec3 freshPaper = vec3(0.96, 0.94, 0.90);
+    vec3 paperColor = mix(freshPaper, agedPaper, ageFactor);
+    color = mix(color, color * paperColor, s.paperStrength * 0.6);
+    // Stronger vignette with adjustable falloff
     vec2 vig = baseUv * (1.0 - baseUv);
-    float vigAmount = pow(vig.x * vig.y * 20.0, 0.3);
-    color *= mix(1.0, vigAmount, s.paperStrength * 0.4);
+    float vigAmount = pow(vig.x * vig.y * 16.0, 0.25);
+    color *= mix(1.0, vigAmount, s.paperStrength * 0.6);
   }
 
   return color;
@@ -460,7 +550,9 @@ void main() {
     uHalftoneSize, uHalftoneAngle, uSaturationBoost,
     uWobbleAmount, uWobbleFreq, uCmykOffset, uPaperStrength,
     uEnableOutlines, uEnableCelShading, uEnableHalftone,
-    uEnableWobble, uEnableCmyk, uEnablePaper
+    uEnableWobble, uEnableCmyk, uEnablePaper,
+    uHalftoneIntensity, uOutlineVariation, uSpecularPop,
+    uRimStrength, uRimThreshold, uColorPunch
   );
 
   Style lensStyle = Style(
@@ -468,7 +560,9 @@ void main() {
     uLHalftoneSize, uLHalftoneAngle, uLSaturationBoost,
     uLWobbleAmount, uLWobbleFreq, uLCmykOffset, uLPaperStrength,
     uLEnableOutlines, uLEnableCelShading, uLEnableHalftone,
-    uLEnableWobble, uLEnableCmyk, uLEnablePaper
+    uLEnableWobble, uLEnableCmyk, uLEnablePaper,
+    uLHalftoneIntensity, uLOutlineVariation, uLSpecularPop,
+    uLRimStrength, uLRimThreshold, uLColorPunch
   );
 
   // Lens mask
@@ -571,6 +665,12 @@ export interface ComicUniforms {
   uEnableWobble: { value: number };
   uEnablePaper: { value: number };
   uPaperStrength: { value: number };
+  uHalftoneIntensity: { value: number };
+  uOutlineVariation: { value: number };
+  uSpecularPop: { value: number };
+  uRimStrength: { value: number };
+  uRimThreshold: { value: number };
+  uColorPunch: { value: number };
   uMouse: { value: THREE.Vector2 };
   // Lens style
   uLOutlineThickness: { value: number };
@@ -589,6 +689,12 @@ export interface ComicUniforms {
   uLEnableWobble: { value: number };
   uLEnableCmyk: { value: number };
   uLEnablePaper: { value: number };
+  uLHalftoneIntensity: { value: number };
+  uLOutlineVariation: { value: number };
+  uLSpecularPop: { value: number };
+  uLRimStrength: { value: number };
+  uLRimThreshold: { value: number };
+  uLColorPunch: { value: number };
   // Lens geometry
   uLensRadius: { value: number };
   uLensSmooth: { value: number };
@@ -621,6 +727,12 @@ export function createComicUniforms(): ComicUniforms {
     uEnableWobble: { value: 1.0 },
     uEnablePaper: { value: 1.0 },
     uPaperStrength: { value: 0.4 },
+    uHalftoneIntensity: { value: 0.7 },
+    uOutlineVariation: { value: 0.8 },
+    uSpecularPop: { value: 0.7 },
+    uRimStrength: { value: 0.3 },
+    uRimThreshold: { value: 0.65 },
+    uColorPunch: { value: 0.4 },
     uMouse: { value: new THREE.Vector2(0.5, 0.5) },
     // Lens style (defaults to Noir — contrast of default Comic Book)
     uLOutlineThickness: { value: 1.5 },
@@ -639,6 +751,12 @@ export function createComicUniforms(): ComicUniforms {
     uLEnableWobble: { value: 1.0 },
     uLEnableCmyk: { value: 0.0 },
     uLEnablePaper: { value: 1.0 },
+    uLHalftoneIntensity: { value: 0.4 },
+    uLOutlineVariation: { value: 1.0 },
+    uLSpecularPop: { value: 0.5 },
+    uLRimStrength: { value: 0.6 },
+    uLRimThreshold: { value: 0.55 },
+    uLColorPunch: { value: 0.0 },
     // Lens geometry
     uLensRadius: { value: 0.0 },
     uLensSmooth: { value: 0.022 },

@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { Engine } from './engine/Engine';
 import { ComicScene } from './comic/ComicScene';
 import { ComicPass } from './comic/ComicPass';
@@ -13,11 +14,19 @@ engine.addPass(comicPass);
 
 const u = comicPass.uniforms;
 
-// ─── Presets ────────────────────────────────────────
+// ─── Per-preset scene colors ─────────────────────────
+
+interface PresetColors {
+  background: number;
+  ground: number;
+  fog: number;
+  fogDensity: number;
+}
 
 interface Preset {
   name: string;
   values: Record<string, number>;
+  colors: PresetColors;
 }
 
 const presets: Preset[] = [
@@ -30,6 +39,14 @@ const presets: Preset[] = [
       uCmykOffset: 2.5, uPaperStrength: 0.4,
       uEnableOutlines: 1, uEnableCelShading: 1, uEnableHalftone: 1,
       uEnableWobble: 1, uEnableCmyk: 1, uEnablePaper: 1,
+      uHalftoneIntensity: 0.7, uOutlineVariation: 0.8, uSpecularPop: 0.7,
+      uRimStrength: 0.3, uRimThreshold: 0.65, uColorPunch: 0.4,
+    },
+    colors: {
+      background: 0xf5f0e8,
+      ground: 0xe8dfd0,
+      fog: 0xf0ebe0,
+      fogDensity: 0.012,
     },
   },
   {
@@ -41,6 +58,14 @@ const presets: Preset[] = [
       uCmykOffset: 5, uPaperStrength: 0.1,
       uEnableOutlines: 1, uEnableCelShading: 1, uEnableHalftone: 1,
       uEnableWobble: 0, uEnableCmyk: 1, uEnablePaper: 0,
+      uHalftoneIntensity: 0.9, uOutlineVariation: 0.5, uSpecularPop: 0.9,
+      uRimStrength: 0.2, uRimThreshold: 0.7, uColorPunch: 0.7,
+    },
+    colors: {
+      background: 0xf8f0d0,
+      ground: 0xf0e8d0,
+      fog: 0xf5edd0,
+      fogDensity: 0.008,
     },
   },
   {
@@ -52,6 +77,14 @@ const presets: Preset[] = [
       uCmykOffset: 0, uPaperStrength: 0.6,
       uEnableOutlines: 1, uEnableCelShading: 1, uEnableHalftone: 1,
       uEnableWobble: 1, uEnableCmyk: 0, uEnablePaper: 1,
+      uHalftoneIntensity: 0.4, uOutlineVariation: 1.0, uSpecularPop: 0.5,
+      uRimStrength: 0.6, uRimThreshold: 0.55, uColorPunch: 0.0,
+    },
+    colors: {
+      background: 0x252030,
+      ground: 0x201820,
+      fog: 0x201828,
+      fogDensity: 0.035,
     },
   },
   {
@@ -63,6 +96,14 @@ const presets: Preset[] = [
       uCmykOffset: 0, uPaperStrength: 0.25,
       uEnableOutlines: 1, uEnableCelShading: 1, uEnableHalftone: 1,
       uEnableWobble: 1, uEnableCmyk: 0, uEnablePaper: 1,
+      uHalftoneIntensity: 0.6, uOutlineVariation: 0.9, uSpecularPop: 0.6,
+      uRimStrength: 0.4, uRimThreshold: 0.6, uColorPunch: 0.0,
+    },
+    colors: {
+      background: 0xe8e5e0,
+      ground: 0xd8d5d0,
+      fog: 0xe0ddd8,
+      fogDensity: 0.012,
     },
   },
   {
@@ -74,6 +115,14 @@ const presets: Preset[] = [
       uCmykOffset: 4, uPaperStrength: 0.8,
       uEnableOutlines: 1, uEnableCelShading: 1, uEnableHalftone: 1,
       uEnableWobble: 1, uEnableCmyk: 1, uEnablePaper: 1,
+      uHalftoneIntensity: 0.8, uOutlineVariation: 0.6, uSpecularPop: 0.3,
+      uRimStrength: 0.2, uRimThreshold: 0.7, uColorPunch: 0.3,
+    },
+    colors: {
+      background: 0xd8c8a8,
+      ground: 0xc8b898,
+      fog: 0xd0c0a5,
+      fogDensity: 0.015,
     },
   },
   {
@@ -85,6 +134,14 @@ const presets: Preset[] = [
       uCmykOffset: 0, uPaperStrength: 0,
       uEnableOutlines: 1, uEnableCelShading: 1, uEnableHalftone: 0,
       uEnableWobble: 0, uEnableCmyk: 0, uEnablePaper: 0,
+      uHalftoneIntensity: 0, uOutlineVariation: 0.3, uSpecularPop: 0.8,
+      uRimStrength: 0.35, uRimThreshold: 0.6, uColorPunch: 0.15,
+    },
+    colors: {
+      background: 0xf5f5f5,
+      ground: 0xeeeeee,
+      fog: 0xf2f2f2,
+      fogDensity: 0.006,
     },
   },
 ];
@@ -111,6 +168,68 @@ function setLensPreset(preset: Preset) {
   }
 }
 
+// ─── Color animation state ───────────────────────────
+
+const colorAnim = {
+  startBg: new THREE.Color(),
+  targetBg: new THREE.Color(),
+  startGround: new THREE.Color(),
+  targetGround: new THREE.Color(),
+  startFog: new THREE.Color(),
+  targetFog: new THREE.Color(),
+  startFogDensity: 0.012,
+  targetFogDensity: 0.012,
+  startTime: 0,
+  duration: 800,
+  active: false,
+};
+
+function applyPresetColors(colors: PresetColors, animate = true) {
+  const bg = engine.scene.background as THREE.Color;
+  const fog = engine.scene.fog as THREE.FogExp2;
+
+  colorAnim.startBg.copy(bg);
+  colorAnim.targetBg.setHex(colors.background);
+  colorAnim.startGround.copy(comicScene.groundMat.color);
+  colorAnim.targetGround.setHex(colors.ground);
+  colorAnim.startFog.copy(fog.color);
+  colorAnim.targetFog.setHex(colors.fog);
+  colorAnim.startFogDensity = fog.density;
+  colorAnim.targetFogDensity = colors.fogDensity;
+
+  if (!animate) {
+    bg.copy(colorAnim.targetBg);
+    comicScene.groundMat.color.copy(colorAnim.targetGround);
+    fog.color.copy(colorAnim.targetFog);
+    fog.density = colorAnim.targetFogDensity;
+    colorAnim.active = false;
+    return;
+  }
+
+  colorAnim.startTime = performance.now();
+  colorAnim.active = true;
+}
+
+function updateColorAnimation() {
+  if (!colorAnim.active) return;
+
+  const elapsed = performance.now() - colorAnim.startTime;
+  const t = Math.min(elapsed / colorAnim.duration, 1);
+  const e = 1 - Math.pow(1 - t, 3); // ease-out cubic
+
+  const bg = engine.scene.background as THREE.Color;
+  const fog = engine.scene.fog as THREE.FogExp2;
+
+  bg.copy(colorAnim.startBg).lerp(colorAnim.targetBg, e);
+  comicScene.groundMat.color.copy(colorAnim.startGround).lerp(colorAnim.targetGround, e);
+  fog.color.copy(colorAnim.startFog).lerp(colorAnim.targetFog, e);
+  fog.density = colorAnim.startFogDensity + (colorAnim.targetFogDensity - colorAnim.startFogDensity) * e;
+
+  if (t >= 1) colorAnim.active = false;
+}
+
+// ─── Preset animation ────────────────────────────────
+
 let presetAnimationId: number | null = null;
 
 function applyPreset(preset: Preset, animate = true) {
@@ -119,6 +238,9 @@ function applyPreset(preset: Preset, animate = true) {
     cancelAnimationFrame(presetAnimationId);
     presetAnimationId = null;
   }
+
+  // Animate scene colors alongside shader uniforms
+  applyPresetColors(preset.colors, animate);
 
   const duration = animate ? 600 : 0;
   const start: Record<string, number> = {};
@@ -206,15 +328,20 @@ const f1 = gui.addFolder('Outlines');
 addToggle(f1, 'Enable', 'uEnableOutlines');
 addSlider(f1, 'Thickness', 'uOutlineThickness', 0.3, 4.0, 0.1);
 addSlider(f1, 'Threshold', 'uOutlineThreshold', 0.05, 1.0, 0.01);
+addSlider(f1, 'Ink Variation', 'uOutlineVariation', 0, 1, 0.05);
 
 const f2 = gui.addFolder('Cel Shading');
 addToggle(f2, 'Enable', 'uEnableCelShading');
 addSlider(f2, 'Bands', 'uCelBands', 2, 8, 1);
+addSlider(f2, 'Specular Pop', 'uSpecularPop', 0, 1, 0.05);
+addSlider(f2, 'Rim Strength', 'uRimStrength', 0, 1, 0.05);
+addSlider(f2, 'Rim Threshold', 'uRimThreshold', 0, 1, 0.05);
 
 const f3 = gui.addFolder('Halftone');
 addToggle(f3, 'Enable', 'uEnableHalftone');
 addSlider(f3, 'Dot Size', 'uHalftoneSize', 2, 20, 0.5);
 addSlider(f3, 'Angle', 'uHalftoneAngle', 0, 1.57, 0.01);
+addSlider(f3, 'CMYK Intensity', 'uHalftoneIntensity', 0, 1, 0.05);
 
 const f4 = gui.addFolder('Hand-drawn');
 addToggle(f4, 'Enable', 'uEnableWobble');
@@ -231,6 +358,7 @@ addSlider(f6, 'Strength', 'uPaperStrength', 0, 1, 0.05);
 
 const f7 = gui.addFolder('Color');
 addSlider(f7, 'Saturation', 'uSaturationBoost', -1, 1, 0.05);
+addSlider(f7, 'Color Punch', 'uColorPunch', 0, 1, 0.05);
 
 // Close less important folders by default
 f4.close();
@@ -260,12 +388,17 @@ const rawValues: Record<string, number> = {
   uHalftoneSize: 5, uHalftoneAngle: 0.52, uWobbleAmount: 0,
   uWobbleFreq: 12, uCmykOffset: 0, uPaperStrength: 0,
   uOutlineThreshold: 0.35,
+  uHalftoneIntensity: 0, uOutlineVariation: 0, uSpecularPop: 0,
+  uRimStrength: 0, uRimThreshold: 0.65, uColorPunch: 0,
 };
 
 // Apply raw state immediately
 for (const [key, val] of Object.entries(rawValues)) {
   (u[key] as { value: number }).value = val;
 }
+
+// Apply initial colors immediately (no animation)
+applyPresetColors(presets[0].colors, false);
 
 const flash = document.getElementById('flash')!;
 
@@ -302,6 +435,36 @@ window.addEventListener('keydown', (e) => {
   else return;
   u.uLensMode.value = lensMode;
   lensModeEl.textContent = lensModes[lensMode];
+});
+
+// ─── Compare toggle (hold to see raw 3D) ────────────
+
+let comparing = false;
+const compareBtn = document.getElementById('compare')!;
+
+function startCompare() {
+  comparing = true;
+  compareBtn.classList.add('active');
+}
+function stopCompare() {
+  comparing = false;
+  compareBtn.classList.remove('active');
+}
+
+compareBtn.addEventListener('mousedown', startCompare);
+compareBtn.addEventListener('mouseup', stopCompare);
+compareBtn.addEventListener('mouseleave', stopCompare);
+compareBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startCompare(); });
+compareBtn.addEventListener('touchend', stopCompare);
+compareBtn.addEventListener('touchcancel', stopCompare);
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'c' || e.key === 'C') {
+    if (!e.repeat) startCompare();
+  }
+});
+window.addEventListener('keyup', (e) => {
+  if (e.key === 'c' || e.key === 'C') stopCompare();
 });
 
 // ─── Mouse interaction (click-and-hold lens) ─────────
@@ -350,20 +513,32 @@ window.addEventListener('touchcancel', () => { lensActive = false; }, { passive:
 // ─── Auto-orbit camera ──────────────────────────────
 
 let autoOrbit = true;
+let orbitAngle = 0.2; // starting angle
+let orbitResumeTimer = 0;
 
-// Stop auto-orbit on user interaction
+const ORBIT_RESUME_DELAY = 4.0; // seconds before auto-orbit resumes
+
 engine.controls.addEventListener('start', () => {
   autoOrbit = false;
+  orbitResumeTimer = 0;
 });
 
-// Start
+engine.controls.addEventListener('end', () => {
+  orbitResumeTimer = 0;
+});
+
+// ─── Render loop ─────────────────────────────────────
+
 engine.start((dt) => {
   comicScene.update(dt);
-  const safeDt = Math.min(Math.max(dt, 0.001), 0.05); // clamp: avoid div-by-zero on first frame
+  const safeDt = Math.min(Math.max(dt, 0.001), 0.05);
+
+  // ── Color animation tick ──
+  updateColorAnimation();
 
   // ── Mouse follow: adaptive lerp (snaps when far, settles when close) ──
   const distToTarget = Math.hypot(mousePos.x - smoothMouse.x, mousePos.y - smoothMouse.y);
-  const followRate = 8 + distToTarget * 40; // faster when further away
+  const followRate = 8 + distToTarget * 40;
   const followFactor = 1 - Math.exp(-followRate * safeDt);
   smoothMouse.x += (mousePos.x - smoothMouse.x) * followFactor;
   smoothMouse.y += (mousePos.y - smoothMouse.y) * followFactor;
@@ -374,7 +549,6 @@ engine.start((dt) => {
   const rawVelY = (smoothMouse.y - prevMousePos.y) / safeDt;
   const rawSpeed = Math.hypot(rawVelX, rawVelY);
   const curSpeed = Math.hypot(smoothVel.x, smoothVel.y);
-  // Fast attack when accelerating, slow organic decay when settling
   const isAccel = rawSpeed > curSpeed;
   const velRate = isAccel ? 12 : 4;
   const velFactor = 1 - Math.exp(-velRate * safeDt);
@@ -384,10 +558,8 @@ engine.start((dt) => {
   prevMousePos.x = smoothMouse.x;
   prevMousePos.y = smoothMouse.y;
 
-  // ── Lens radius: spring physics (pops open on press, snaps shut on release) ──
+  // ── Lens radius: spring physics ──
   const targetR = lensActive ? lensRadius : 0.0;
-
-  // Underdamped spring: slight overshoot on appear, elastic settle
   const stiffness = 160;
   const damping = 17;
   const springForce = (targetR - currentLensRadius) * stiffness;
@@ -395,21 +567,51 @@ engine.start((dt) => {
   lensRadiusVel += (springForce + dampForce) * safeDt;
   currentLensRadius += lensRadiusVel * safeDt;
   currentLensRadius = Math.max(0, currentLensRadius);
-  // Hard cutoff: kill residual spring oscillation so lens fully vanishes
   if (!lensActive && currentLensRadius < 0.005) {
     currentLensRadius = 0;
     lensRadiusVel = 0;
   }
   u.uLensRadius.value = currentLensRadius;
 
-  // ── Camera orbit: layered sine waves for organic drift ──
+  // ── Camera: auto-orbit with smooth resume + parallax ──
+  if (!autoOrbit) {
+    // Count time since user stopped interacting
+    orbitResumeTimer += safeDt;
+    if (orbitResumeTimer > ORBIT_RESUME_DELAY && !lensActive) {
+      autoOrbit = true;
+      // Sync orbit angle to current camera position for seamless resume
+      orbitAngle = Math.atan2(engine.camera.position.x, engine.camera.position.z);
+    }
+    // User is in control — let OrbitControls drive
+    engine.controls.update();
+  }
+
   if (autoOrbit) {
-    const t = performance.now() * 0.001;
+    // Progress the orbit
+    orbitAngle += 0.12 * safeDt;
     const radius = 9;
-    const angle = t * 0.12 + Math.sin(t * 0.037) * 0.15;
-    engine.camera.position.x = Math.sin(angle) * radius;
-    engine.camera.position.z = Math.cos(angle) * radius;
-    engine.camera.position.y = 4 + Math.sin(t * 0.08) * 0.4 + Math.sin(t * 0.031) * 0.2;
-    engine.camera.lookAt(0, 1.5, 0);
+    const angle = orbitAngle + Math.sin(orbitAngle * 0.3) * 0.15;
+    const targetX = Math.sin(angle) * radius;
+    const targetZ = Math.cos(angle) * radius;
+    const t = performance.now() * 0.001;
+    const targetY = 4 + Math.sin(t * 0.08) * 0.4 + Math.sin(t * 0.031) * 0.2;
+
+    // Smooth blend toward orbit position (prevents jump on resume)
+    const blend = 1 - Math.exp(-2.5 * safeDt);
+    engine.camera.position.x += (targetX - engine.camera.position.x) * blend;
+    engine.camera.position.z += (targetZ - engine.camera.position.z) * blend;
+    engine.camera.position.y += (targetY - engine.camera.position.y) * blend;
+
+    // Cursor parallax on lookAt target
+    const px = (mousePos.x - 0.5) * 0.5;
+    const py = (mousePos.y - 0.5) * 0.3;
+    engine.camera.lookAt(px, 1.5 + py, 0);
+  }
+
+  // ── Render ──
+  if (comparing) {
+    engine.renderDirect();
+  } else {
+    engine.composer.render();
   }
 });
