@@ -26,13 +26,15 @@ interface PresetColors {
 interface PresetUI {
   title: string;
   desc: string;
-  fontFamily: string;
-  fontSize: string;
-  fontWeight: string;
-  fontStyle: string;
-  letterSpacing: string;
-  titleColor: string;
-  descColor: string;
+  issueNum: string;
+  price: string;
+  frameColor: string;
+  mastheadBg: string;
+  mastheadText: string;
+  captionBg: string;
+  captionBorder: string;
+  captionText: string;
+  sealColor: string;
 }
 
 interface Preset {
@@ -64,13 +66,15 @@ const presets: Preset[] = [
     ui: {
       title: 'COMIC BOOK',
       desc: 'Real-time post-processing combining cel shading, Ben-Day halftone, CMYK misregistration, and hand-drawn line wobble.',
-      fontFamily: "'RG WideBlack', sans-serif",
-      fontSize: '56px',
-      fontWeight: 'normal',
-      fontStyle: 'normal',
-      letterSpacing: '-1px',
-      titleColor: '#202020',
-      descColor: '#202020',
+      issueNum: 'No.01',
+      price: '$3.99',
+      frameColor: '#f5f0e1',
+      mastheadBg: '#c41e2a',
+      mastheadText: '#fff',
+      captionBg: '#f7e44c',
+      captionBorder: '#1a1a1a',
+      captionText: '#1a1a1a',
+      sealColor: '#1a8c3f',
     },
   },
   {
@@ -94,13 +98,15 @@ const presets: Preset[] = [
     ui: {
       title: 'POP ART',
       desc: 'Bold color blocking with oversized Ben-Day dots and heavy outlines. Warhol meets Lichtenstein.',
-      fontFamily: "'RG WideBlack', sans-serif",
-      fontSize: '56px',
-      fontWeight: 'normal',
-      fontStyle: 'normal',
-      letterSpacing: '-1px',
-      titleColor: '#202020',
-      descColor: '#202020',
+      issueNum: 'No.02',
+      price: '$4.50',
+      frameColor: '#f8f0d8',
+      mastheadBg: '#f7d31e',
+      mastheadText: '#1a1a1a',
+      captionBg: '#ff3b77',
+      captionBorder: '#1a1a1a',
+      captionText: '#fff',
+      sealColor: '#1a6bcc',
     },
   },
   {
@@ -124,13 +130,15 @@ const presets: Preset[] = [
     ui: {
       title: 'NOIR',
       desc: 'High-contrast black & white with dramatic ink pooling, deep shadows, and textured paper grain.',
-      fontFamily: "'RG WideBlack', sans-serif",
-      fontSize: '56px',
-      fontWeight: 'normal',
-      fontStyle: 'normal',
-      letterSpacing: '-1px',
-      titleColor: '#e8e0d0',
-      descColor: '#a09888',
+      issueNum: 'No.03',
+      price: '$3.99',
+      frameColor: '#1a1525',
+      mastheadBg: '#1a1525',
+      mastheadText: '#a09888',
+      captionBg: '#2a2530',
+      captionBorder: '#4a4050',
+      captionText: '#a09888',
+      sealColor: '#4a4050',
     },
   },
   {
@@ -154,13 +162,15 @@ const presets: Preset[] = [
     ui: {
       title: 'MANGA',
       desc: 'Japanese ink style with fine screentone, crisp edges, and desaturated tonal range.',
-      fontFamily: "'RG WideBlack', sans-serif",
-      fontSize: '56px',
-      fontWeight: 'normal',
-      fontStyle: 'normal',
-      letterSpacing: '-1px',
-      titleColor: '#202020',
-      descColor: '#202020',
+      issueNum: 'No.04',
+      price: '¥480',
+      frameColor: '#e8e5e0',
+      mastheadBg: '#f5f5f0',
+      mastheadText: '#1a1a1a',
+      captionBg: '#ffffff',
+      captionBorder: '#1a1a1a',
+      captionText: '#1a1a1a',
+      sealColor: '#1a1a1a',
     },
   },
   {
@@ -184,13 +194,15 @@ const presets: Preset[] = [
     ui: {
       title: 'VINTAGE PRINT',
       desc: 'Faded four-color process with heavy paper texture, slight misregistration, and aged yellowing.',
-      fontFamily: "'RG WideBlack', sans-serif",
-      fontSize: '56px',
-      fontWeight: 'normal',
-      fontStyle: 'normal',
-      letterSpacing: '-1px',
-      titleColor: '#202020',
-      descColor: '#202020',
+      issueNum: 'No.05',
+      price: '15¢',
+      frameColor: '#d8c8a0',
+      mastheadBg: '#6b4423',
+      mastheadText: '#e8d8b0',
+      captionBg: '#e8d8b0',
+      captionBorder: '#6b4423',
+      captionText: '#3a2a15',
+      sealColor: '#6b4423',
     },
   },
   {
@@ -214,13 +226,15 @@ const presets: Preset[] = [
     ui: {
       title: 'CLEAN',
       desc: 'Pure cel shading with sharp outlines. No halftone, no paper, no grit \u2014 just clean vector style.',
-      fontFamily: "'RG WideBlack', sans-serif",
-      fontSize: '56px',
-      fontWeight: 'normal',
-      fontStyle: 'normal',
-      letterSpacing: '-1px',
-      titleColor: '#202020',
-      descColor: '#202020',
+      issueNum: 'No.06',
+      price: '$3.99',
+      frameColor: '#ffffff',
+      mastheadBg: '#1a1a1a',
+      mastheadText: '#fff',
+      captionBg: '#f0f0f0',
+      captionBorder: '#1a1a1a',
+      captionText: '#1a1a1a',
+      sealColor: '#1a1a1a',
     },
   },
 ];
@@ -309,39 +323,48 @@ function updateColorAnimation() {
 
 // ─── Preset UI (title/font/desc swap) ────────────────
 
-const headerH1 = document.querySelector('#header h1') as HTMLElement;
-const headerP = document.querySelector('#header p') as HTMLElement;
+const mastheadTitle = document.querySelector('.masthead-title') as HTMLElement;
+const mastheadIssue = document.querySelector('.masthead-issue') as HTMLElement;
+const mastheadDate = document.querySelector('.masthead-date') as HTMLElement;
+const mastheadPrice = document.querySelector('.masthead-price') as HTMLElement;
+const captionP = document.querySelector('#caption p') as HTMLElement;
 
-function setHeaderStyles(ui: PresetUI) {
-  headerH1.textContent = ui.title;
-  headerH1.style.fontFamily = ui.fontFamily;
-  headerH1.style.fontSize = ui.fontSize;
-  headerH1.style.fontWeight = ui.fontWeight;
-  headerH1.style.fontStyle = ui.fontStyle;
-  headerH1.style.letterSpacing = ui.letterSpacing;
-  headerH1.style.color = ui.titleColor;
-  headerP.textContent = ui.desc;
-  headerP.style.color = ui.descColor;
+const coverTextEls = [mastheadTitle, mastheadIssue, mastheadDate, mastheadPrice, captionP];
+
+function setCoverStyles(ui: PresetUI) {
+  // Text content
+  mastheadTitle.textContent = ui.title;
+  mastheadIssue.textContent = ui.issueNum;
+  mastheadPrice.textContent = ui.price;
+  captionP.textContent = ui.desc;
+
+  // CSS custom properties on :root — browser resolves + transitions computed values
+  const root = document.documentElement.style;
+  root.setProperty('--frame-color', ui.frameColor);
+  root.setProperty('--masthead-bg', ui.mastheadBg);
+  root.setProperty('--masthead-text', ui.mastheadText);
+  root.setProperty('--caption-bg', ui.captionBg);
+  root.setProperty('--caption-border', ui.captionBorder);
+  root.setProperty('--caption-text', ui.captionText);
+  root.setProperty('--seal-color', ui.sealColor);
 }
 
 function applyPresetUI(ui: PresetUI, animate: boolean) {
   if (!animate) {
-    setHeaderStyles(ui);
+    setCoverStyles(ui);
     return;
   }
 
-  // Fade out
-  headerH1.style.opacity = '0';
-  headerP.style.opacity = '0';
+  // Fade out all text elements (180ms)
+  for (const el of coverTextEls) el.style.opacity = '0';
 
   setTimeout(() => {
-    // Swap content & styles while invisible
-    setHeaderStyles(ui);
+    // Swap content & CSS vars while invisible
+    setCoverStyles(ui);
 
     // Fade in (use rAF to ensure style flush)
     requestAnimationFrame(() => {
-      headerH1.style.opacity = '1';
-      headerP.style.opacity = '1';
+      for (const el of coverTextEls) el.style.opacity = '1';
     });
   }, 180);
 }
@@ -796,14 +819,18 @@ engine.start((dt) => {
   }
 
   if (autoOrbit) {
-    // Progress the orbit
-    orbitAngle += 0.12 * safeDt;
-    const radius = 9;
-    const angle = orbitAngle + Math.sin(orbitAngle * 0.3) * 0.15;
+    // Gentle pendulum sway around the best composition angle
+    // instead of a full 360° orbit that hits bad views
+    const t = performance.now() * 0.001;
+    const baseAngle = 0.62; // starting "hero" angle (~35°)
+    const swayAmount = 0.4; // ±23° arc
+    const angle = baseAngle + Math.sin(t * 0.08) * swayAmount
+                            + Math.sin(t * 0.031) * swayAmount * 0.3;
+
+    const radius = 8.5;
     const targetX = Math.sin(angle) * radius;
     const targetZ = Math.cos(angle) * radius;
-    const t = performance.now() * 0.001;
-    const targetY = 4 + Math.sin(t * 0.08) * 0.4 + Math.sin(t * 0.031) * 0.2;
+    const targetY = 3.8 + Math.sin(t * 0.06) * 0.25;
 
     // Smooth blend toward orbit position (prevents jump on resume)
     const blend = 1 - Math.exp(-2.5 * safeDt);
@@ -811,10 +838,7 @@ engine.start((dt) => {
     engine.camera.position.z += (targetZ - engine.camera.position.z) * blend;
     engine.camera.position.y += (targetY - engine.camera.position.y) * blend;
 
-    // Cursor parallax on lookAt target
-    const px = (mousePos.x - 0.5) * 0.5;
-    const py = (mousePos.y - 0.5) * 0.3;
-    engine.camera.lookAt(px, 1.5 + py, 0);
+    engine.camera.lookAt(0, 1.5, 0);
   }
 
   // ── Render ──

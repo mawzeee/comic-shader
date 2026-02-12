@@ -8,6 +8,20 @@
   font-family: 'RG CompactBlack';
   src: url('/fonts/PPRightGrotesk-CompactBlack.otf') format('opentype');
 }
+@font-face {
+  font-family: 'Bangers';
+  src: url('/fonts/Bangers-Regular.ttf') format('truetype');
+}
+
+:root {
+  --frame-color: #f5f0e1;
+  --masthead-bg: #c41e2a;
+  --masthead-text: #fff;
+  --caption-bg: #f7e44c;
+  --caption-border: #1a1a1a;
+  --caption-text: #1a1a1a;
+  --seal-color: #1a8c3f;
+}
 
 * {
   margin: 0;
@@ -29,7 +43,7 @@ canvas#canvas {
   height: 100%;
 }
 
-/* --- Overlay UI --- */
+/* --- Overlay UI (page edge frame) --- */
 
 #overlay {
   position: fixed;
@@ -39,40 +53,154 @@ canvas#canvas {
   height: 100%;
   pointer-events: none;
   z-index: 10;
+  box-shadow: inset 0 0 0 12px var(--frame-color);
+  transition: box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-#header {
+/* --- Masthead banner --- */
+
+#masthead {
   position: absolute;
-  top: 32px;
-  left: 36px;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  height: 52px;
+  background-color: var(--masthead-bg);
+  color: var(--masthead-text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
   pointer-events: auto;
+  transition: background-color 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-#header h1 {
-  font-family: 'RG WideBlack', sans-serif;
-  font-size: 56px;
-  color: #202020;
-  letter-spacing: -1px;
-  line-height: 1;
-  margin-bottom: 6px;
+.masthead-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.masthead-issue {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
   transition: opacity 0.18s ease;
+}
+
+.masthead-date {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.3px;
+  opacity: 0.7;
+  transition: opacity 0.18s ease;
+}
+
+.masthead-title {
+  font-family: 'Bangers', cursive;
+  font-size: 32px;
+  letter-spacing: 2px;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
+  transition: opacity 0.18s ease;
+}
+
+.masthead-price {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: opacity 0.18s ease;
+}
+
+/* --- CCA-style seal --- */
+
+#seal {
+  position: absolute;
+  top: 76px;
+  right: 24px;
+  width: 72px;
+  height: 72px;
+  border: 2px solid var(--seal-color);
+  outline: 2px solid var(--seal-color);
+  outline-offset: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  transition: border-color 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              outline-color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.seal-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  text-align: center;
+}
+
+.seal-top {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 6px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: var(--seal-color);
   text-transform: uppercase;
+  transition: color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-#header p {
-  font-size: 13px;
-  color: #202020;
-  font-weight: 300;
-  max-width: 320px;
+.seal-mid {
+  font-family: 'Bangers', cursive;
+  font-size: 16px;
+  letter-spacing: 1px;
+  color: var(--seal-color);
+  line-height: 1;
+  transition: color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.seal-bot {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 6px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: var(--seal-color);
+  text-transform: uppercase;
+  transition: color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* --- Caption box --- */
+
+#caption {
+  position: absolute;
+  bottom: 120px;
+  left: 24px;
+  max-width: 280px;
+  background-color: var(--caption-bg);
+  border: 2px solid var(--caption-border);
+  padding: 12px 14px;
+  pointer-events: auto;
+  transition: background-color 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#caption p {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
   line-height: 1.5;
-  transition: opacity 0.18s ease;
+  color: var(--caption-text);
+  transition: opacity 0.18s ease,
+              color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Presets — unified toggle bar */
 
 #presets {
   position: absolute;
-  bottom: 36px;
+  bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -188,8 +316,8 @@ canvas#canvas {
 
 #credits {
   position: absolute;
-  bottom: 36px;
-  right: 36px;
+  bottom: 72px;
+  right: 24px;
   text-align: right;
   pointer-events: auto;
 }
@@ -227,28 +355,12 @@ canvas#canvas {
   opacity: 1;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  #flash {
-    transition: none;
-  }
-  .preset-btn {
-    transition: none;
-    animation: none !important;
-  }
-  .preset-indicator {
-    transition: none;
-  }
-  .preset-preview {
-    transition: none;
-  }
-}
-
 /* Lens mode buttons */
 
 #lens-modes {
   position: absolute;
-  bottom: 36px;
-  right: 36px;
+  bottom: 24px;
+  right: 24px;
   display: flex;
   gap: 8px;
   pointer-events: auto;
@@ -293,8 +405,8 @@ canvas#canvas {
 
 #compare {
   position: absolute;
-  bottom: 36px;
-  left: 36px;
+  bottom: 24px;
+  left: 24px;
   pointer-events: auto;
   background: rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(16px);
@@ -349,13 +461,44 @@ canvas#canvas {
   border-color: rgba(255,255,255,0.15);
 }
 
-/* lil-gui override: move to right side, make smaller */
+/* lil-gui override: move below seal */
 .lil-gui.root {
   position: fixed !important;
-  top: 32px !important;
-  right: 36px !important;
+  top: 172px !important;
+  right: 24px !important;
   width: 240px !important;
-  max-height: calc(100vh - 100px) !important;
+  max-height: calc(100vh - 220px) !important;
   overflow-y: auto !important;
   z-index: 20 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #overlay {
+    transition: none;
+  }
+  #masthead {
+    transition: none;
+  }
+  #seal, .seal-top, .seal-mid, .seal-bot {
+    transition: none;
+  }
+  #caption, #caption p {
+    transition: none;
+  }
+  .masthead-issue, .masthead-date, .masthead-title, .masthead-price {
+    transition: none;
+  }
+  #flash {
+    transition: none;
+  }
+  .preset-btn {
+    transition: none;
+    animation: none !important;
+  }
+  .preset-indicator {
+    transition: none;
+  }
+  .preset-preview {
+    transition: none;
+  }
 }

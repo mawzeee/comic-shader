@@ -12,18 +12,34 @@
     <div id="flash"></div>
 
     <div id="overlay">
-      <div id="header">
-        <h1>COMIC BOOK</h1>
-        <p>Real-time post-processing shader combining cel shading, Ben-Day halftone, CMYK misregistration, and hand-drawn line wobble.</p>
+      <!-- Masthead banner -->
+      <div id="masthead">
+        <div class="masthead-left">
+          <span class="masthead-issue">No.01</span>
+          <span class="masthead-date">FEB 2026</span>
+        </div>
+        <span class="masthead-title">COMIC BOOK</span>
+        <span class="masthead-price">$3.99</span>
       </div>
 
+      <!-- CCA-style seal -->
+      <div id="seal">
+        <div class="seal-inner">
+          <span class="seal-top">APPROVED BY THE</span>
+          <span class="seal-mid">SHADER</span>
+          <span class="seal-bot">AUTHORITY</span>
+        </div>
+      </div>
+
+      <!-- Caption box (comic narrator style) -->
+      <div id="caption">
+        <p>Real-time post-processing combining cel shading, Ben-Day halftone, CMYK misregistration, and hand-drawn line wobble.</p>
+      </div>
+
+      <!-- Controls -->
       <div id="presets"></div>
-
       <div id="compare">COMPARE <span class="key-hint">HOLD</span></div>
-
-      <div id="credits">
-        <a href="#">Three.js &middot; WebGL 2</a>
-      </div>
+      <div id="credits"><a href="#">Three.js &middot; WebGL 2</a></div>
     </div>
 
     <script type="module" src="/src/main.ts"></script>
