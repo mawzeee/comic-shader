@@ -47,6 +47,7 @@ interface Preset {
   name: string;
   values: Record<string, number>;
   colors: PresetColors;
+  helmetColors: PresetColors;
   ui: PresetUI;
 }
 
@@ -69,6 +70,12 @@ const presets: Preset[] = [
       fog: 0xf0ebe0,
       fogDensity: 0.012,
     },
+    helmetColors: {
+      background: 0x080c1a,
+      ground: 0x0a1025,
+      fog: 0x060a15,
+      fogDensity: 0.025,
+    },
     ui: {
       title: 'COMIC BOOK',
       desc: 'Real-time post-processing combining cel shading, Ben-Day halftone, CMYK misregistration, and hand-drawn line wobble.',
@@ -90,20 +97,26 @@ const presets: Preset[] = [
   {
     name: 'Pop Art',
     values: {
-      uOutlineThickness: 2.0, uOutlineThreshold: 0.4,
-      uCelBands: 3, uHalftoneSize: 10, uHalftoneAngle: 0.26,
-      uSaturationBoost: 0.8, uWobbleAmount: 0, uWobbleFreq: 12,
-      uCmykOffset: 5, uPaperStrength: 0.1,
+      uOutlineThickness: 3.0, uOutlineThreshold: 0.35,
+      uCelBands: 2, uHalftoneSize: 18, uHalftoneAngle: 0.26,
+      uSaturationBoost: 1.0, uWobbleAmount: 0, uWobbleFreq: 12,
+      uCmykOffset: 8, uPaperStrength: 0,
       uEnableOutlines: 1, uEnableCelShading: 1, uEnableHalftone: 1,
       uEnableWobble: 0, uEnableCmyk: 1, uEnablePaper: 0,
-      uHalftoneIntensity: 0.9, uOutlineVariation: 0.5, uSpecularPop: 0.9,
-      uRimStrength: 0.2, uRimThreshold: 0.7, uColorPunch: 0.7,
+      uHalftoneIntensity: 1.0, uOutlineVariation: 0.2, uSpecularPop: 1.0,
+      uRimStrength: 0.1, uRimThreshold: 0.8, uColorPunch: 1.0,
     },
     colors: {
-      background: 0xf8f0d0,
-      ground: 0xf0e8d0,
-      fog: 0xf5edd0,
-      fogDensity: 0.008,
+      background: 0xfff8d0,
+      ground: 0xfff0c0,
+      fog: 0xfff5d0,
+      fogDensity: 0.005,
+    },
+    helmetColors: {
+      background: 0x0a0e1e,
+      ground: 0x0c1228,
+      fog: 0x080c1a,
+      fogDensity: 0.020,
     },
     ui: {
       title: 'POP ART',
@@ -141,6 +154,12 @@ const presets: Preset[] = [
       fog: 0x201828,
       fogDensity: 0.035,
     },
+    helmetColors: {
+      background: 0x04060a,
+      ground: 0x060a12,
+      fog: 0x030508,
+      fogDensity: 0.040,
+    },
     ui: {
       title: 'NOIR',
       desc: 'High-contrast black & white with dramatic ink pooling, deep shadows, and textured paper grain.',
@@ -176,6 +195,12 @@ const presets: Preset[] = [
       ground: 0xd8d5d0,
       fog: 0xe0ddd8,
       fogDensity: 0.012,
+    },
+    helmetColors: {
+      background: 0x0a0e18,
+      ground: 0x0c1222,
+      fog: 0x080c16,
+      fogDensity: 0.028,
     },
     ui: {
       title: 'MANGA',
@@ -213,6 +238,12 @@ const presets: Preset[] = [
       fog: 0xd0c0a5,
       fogDensity: 0.015,
     },
+    helmetColors: {
+      background: 0x08101a,
+      ground: 0x0a1422,
+      fog: 0x060c15,
+      fogDensity: 0.028,
+    },
     ui: {
       title: 'VINTAGE PRINT',
       desc: 'Faded four-color process with heavy paper texture, slight misregistration, and aged yellowing.',
@@ -249,6 +280,12 @@ const presets: Preset[] = [
       fog: 0xf2f2f2,
       fogDensity: 0.006,
     },
+    helmetColors: {
+      background: 0x080c14,
+      ground: 0x0a1020,
+      fog: 0x080a12,
+      fogDensity: 0.020,
+    },
     ui: {
       title: 'CLEAN',
       desc: 'Pure cel shading with sharp outlines. No halftone, no paper, no grit \u2014 just clean vector style.',
@@ -280,6 +317,7 @@ const contrastMap: Record<number, number> = {
 };
 
 let activePresetIndex = 0;
+let activeScene = 0;
 
 function setLensPreset(preset: Preset) {
   const v = preset.values;
@@ -307,7 +345,8 @@ const colorAnim = {
   active: false,
 };
 
-function applyPresetColors(colors: PresetColors, animate = true) {
+function applyPresetColors(preset: Preset, animate = true) {
+  const colors = activeScene === 1 ? preset.helmetColors : preset.colors;
   const bg = engine.scene.background as THREE.Color;
   const fog = engine.scene.fog as THREE.FogExp2;
 
@@ -417,7 +456,7 @@ function applyPreset(preset: Preset, animate = true) {
   }
 
   // Animate scene colors alongside shader uniforms
-  applyPresetColors(preset.colors, animate);
+  applyPresetColors(preset, animate);
 
   const duration = animate ? 600 : 0;
   const start: Record<string, number> = {};
@@ -549,7 +588,7 @@ function capturePreviewThumbnails() {
     for (const key of Object.keys(p.values)) {
       (u[key] as { value: number }).value = p.values[key];
     }
-    applyPresetColors(p.colors, false);
+    applyPresetColors(p, false);
     engine.composer.render();
 
     const tmp = document.createElement('canvas');
@@ -564,7 +603,7 @@ function capturePreviewThumbnails() {
   for (const key of Object.keys(origPreset.values)) {
     (u[key] as { value: number }).value = origPreset.values[key];
   }
-  applyPresetColors(origPreset.colors, false);
+  applyPresetColors(origPreset, false);
   engine.composer.render();
 }
 
@@ -628,6 +667,38 @@ const f7 = gui.addFolder('Color');
 addSlider(f7, 'Saturation', 'uSaturationBoost', -1, 1, 0.05);
 addSlider(f7, 'Color Punch', 'uColorPunch', 0, 1, 0.05);
 
+// ─── Helmet Scene tuning GUI ─────────────────────────
+const fHelmet = gui.addFolder('Helmet Scene');
+const helmetParams = {
+  'Rotation Speed': helmetScene.rotationSpeed,
+  'Mtn Brightness': helmetScene.mountainBrightness,
+  'Fog Density': 0.025,
+};
+fHelmet.add(helmetParams, 'Rotation Speed', 0, 0.3, 0.005).onChange((v: number) => {
+  helmetScene.rotationSpeed = v;
+});
+fHelmet.add(helmetParams, 'Mtn Brightness', 0, 0.4, 0.01).onChange((v: number) => {
+  helmetScene.mountainBrightness = v;
+});
+fHelmet.add(helmetParams, 'Fog Density', 0, 0.05, 0.001).onChange((v: number) => {
+  (engine.scene.fog as THREE.FogExp2).density = v;
+});
+fHelmet.open();
+
+// ─── Camera position readout ─────────────────────────
+const fCam = gui.addFolder('Camera Position');
+const camReadout = { x: 0, y: 0, z: 0, 'Copy Values': () => {
+  const pos = engine.camera.position;
+  const text = `x: ${pos.x.toFixed(2)}, y: ${pos.y.toFixed(2)}, z: ${pos.z.toFixed(2)}`;
+  navigator.clipboard.writeText(text);
+  console.log('Camera position:', text);
+}};
+fCam.add(camReadout, 'x').listen().disable();
+fCam.add(camReadout, 'y').listen().disable();
+fCam.add(camReadout, 'z').listen().disable();
+fCam.add(camReadout, 'Copy Values');
+fCam.open();
+
 // Close less important folders by default
 f4.close();
 f5.close();
@@ -666,7 +737,7 @@ for (const [key, val] of Object.entries(rawValues)) {
 }
 
 // Apply initial colors immediately (no animation)
-applyPresetColors(presets[0].colors, false);
+applyPresetColors(presets[0], false);
 
 const flash = document.getElementById('flash')!;
 
@@ -688,7 +759,6 @@ setTimeout(() => {
 // ─── Scene switcher ─────────────────────────────────
 
 const sceneNames = ['SHAPES', 'HELMET'];
-let activeScene = 0;
 
 const sceneContainer = document.createElement('div');
 sceneContainer.id = 'lens-modes';
@@ -700,6 +770,8 @@ function switchScene(index: number) {
   helmetScene.setVisible(index === 1);
   sceneBtns.forEach(b => b.classList.remove('active'));
   sceneBtns[index].classList.add('active');
+  // Animate bg/fog to the new scene's color palette
+  applyPresetColors(presets[activePresetIndex]);
 }
 
 sceneNames.forEach((name, i) => {
@@ -820,6 +892,11 @@ engine.start((dt) => {
   helmetScene.update(dt);
   const safeDt = Math.min(Math.max(dt, 0.001), 0.05);
 
+  // ── Camera readout ──
+  camReadout.x = +engine.camera.position.x.toFixed(2);
+  camReadout.y = +engine.camera.position.y.toFixed(2);
+  camReadout.z = +engine.camera.position.z.toFixed(2);
+
   // ── Color animation tick ──
   updateColorAnimation();
 
@@ -877,15 +954,17 @@ engine.start((dt) => {
     // Gentle pendulum sway around the best composition angle
     // instead of a full 360° orbit that hits bad views
     const t = performance.now() * 0.001;
-    const baseAngle = 0.62; // starting "hero" angle (~35°)
-    const swayAmount = 0.4; // ±23° arc
+    const isHelmet = activeScene === 1;
+    const baseAngle = isHelmet ? -0.26 : 0.62;
+    const swayAmount = isHelmet ? 0.08 : 0.4;
     const angle = baseAngle + Math.sin(t * 0.08) * swayAmount
                             + Math.sin(t * 0.031) * swayAmount * 0.3;
 
-    const radius = 8.5;
+    const radius = isHelmet ? 8.72 : 8.5;
     const targetX = Math.sin(angle) * radius;
     const targetZ = Math.cos(angle) * radius;
-    const targetY = 3.8 + Math.sin(t * 0.06) * 0.25;
+    const baseY = isHelmet ? 2.65 : 3.8;
+    const targetY = baseY + Math.sin(t * 0.06) * (isHelmet ? 0.05 : 0.25);
 
     // Smooth blend toward orbit position (prevents jump on resume)
     const blend = 1 - Math.exp(-2.5 * safeDt);

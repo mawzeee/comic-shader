@@ -269,7 +269,10 @@ vec3 applyStyle(vec2 baseUv, vec2 texel, Style s) {
     // Reconstruct: where dots print, ink is full; elsewhere, paper white
     vec4 halftoned = vec4(hC, hM, hY, hK);
     vec3 htColor = cmyk2rgb(halftoned);
-    color = mix(color, htColor, s.halftoneIntensity);
+    // Fade halftone with depth — nearby gets full dots, distance becomes solid color
+    float htDepth = linearizeDepth(texture(uDepthBuffer, uv).r);
+    float htFade = 1.0 - smoothstep(8.0, 25.0, htDepth);
+    color = mix(color, htColor, s.halftoneIntensity * htFade);
   }
 
   // Saturation boost
