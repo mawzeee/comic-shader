@@ -97,14 +97,14 @@ const presets: Preset[] = [
   {
     name: 'Pop Art',
     values: {
-      uOutlineThickness: 3.0, uOutlineThreshold: 0.35,
-      uCelBands: 2, uHalftoneSize: 18, uHalftoneAngle: 0.26,
-      uSaturationBoost: 1.0, uWobbleAmount: 0, uWobbleFreq: 12,
-      uCmykOffset: 8, uPaperStrength: 0,
+      uOutlineThickness: 2.0, uOutlineThreshold: 0.35,
+      uCelBands: 3, uHalftoneSize: 10, uHalftoneAngle: 0.26,
+      uSaturationBoost: 0.8, uWobbleAmount: 0, uWobbleFreq: 12,
+      uCmykOffset: 3, uPaperStrength: 0,
       uEnableOutlines: 1, uEnableCelShading: 1, uEnableHalftone: 1,
       uEnableWobble: 0, uEnableCmyk: 1, uEnablePaper: 0,
-      uHalftoneIntensity: 1.0, uOutlineVariation: 0.2, uSpecularPop: 1.0,
-      uRimStrength: 0.1, uRimThreshold: 0.8, uColorPunch: 1.0,
+      uHalftoneIntensity: 0.75, uOutlineVariation: 0.2, uSpecularPop: 0.8,
+      uRimStrength: 0.15, uRimThreshold: 0.75, uColorPunch: 0.7,
     },
     colors: {
       background: 0xfff8d0,
@@ -113,10 +113,10 @@ const presets: Preset[] = [
       fogDensity: 0.005,
     },
     helmetColors: {
-      background: 0x0a0e1e,
-      ground: 0x0c1228,
-      fog: 0x080c1a,
-      fogDensity: 0.020,
+      background: 0xf0d000,
+      ground: 0xe0c400,
+      fog: 0xe8cc00,
+      fogDensity: 0.008,
     },
     ui: {
       title: 'POP ART',
@@ -955,15 +955,15 @@ engine.start((dt) => {
     // instead of a full 360° orbit that hits bad views
     const t = performance.now() * 0.001;
     const isHelmet = activeScene === 1;
-    const baseAngle = isHelmet ? -0.26 : 0.62;
-    const swayAmount = isHelmet ? 0.08 : 0.4;
-    const angle = baseAngle + Math.sin(t * 0.08) * swayAmount
-                            + Math.sin(t * 0.031) * swayAmount * 0.3;
+    const baseAngle = isHelmet ? 0.24 : 0.62;
+    const swayAmount = isHelmet ? 0.26 : 0.4;
+    const angle = baseAngle + Math.sin(t * (isHelmet ? 0.25 : 0.08)) * swayAmount
+                            + Math.sin(t * (isHelmet ? 0.09 : 0.031)) * swayAmount * 0.3;
 
-    const radius = isHelmet ? 8.72 : 8.5;
+    const radius = isHelmet ? 8.61 : 8.5;
     const targetX = Math.sin(angle) * radius;
     const targetZ = Math.cos(angle) * radius;
-    const baseY = isHelmet ? 2.65 : 3.8;
+    const baseY = isHelmet ? 2.57 : 3.8;
     const targetY = baseY + Math.sin(t * 0.06) * (isHelmet ? 0.05 : 0.25);
 
     // Smooth blend toward orbit position (prevents jump on resume)
@@ -974,6 +974,10 @@ engine.start((dt) => {
 
     engine.camera.lookAt(0, 1.5, 0);
   }
+
+  // ── Disable wobble on helmet scene ──
+  const presetWobble = presets[activePresetIndex].values.uWobbleAmount ?? 0;
+  u.uWobbleAmount.value = activeScene === 1 ? 0 : presetWobble;
 
   // ── Render ──
   if (comparing) {

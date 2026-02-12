@@ -259,7 +259,7 @@ export class HelmetScene {
     const t = performance.now() * 0.001;
 
     if (this.helmet) {
-      this.helmet.rotation.y = t * this.rotationSpeed;
+      this.helmet.rotation.y = -Math.sin(t * 0.25) * 0.26;
     }
 
     this.syncEnvironmentColors();
