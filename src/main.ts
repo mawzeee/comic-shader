@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Engine } from './engine/Engine';
 import { ComicScene } from './comic/ComicScene';
+import { HelmetScene } from './comic/HelmetScene';
 import { ComicPass } from './comic/ComicPass';
 import GUI from 'lil-gui';
 
@@ -8,6 +9,7 @@ const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 
 const engine = new Engine(canvas);
 const comicScene = new ComicScene(engine.scene);
+const helmetScene = new HelmetScene(engine.scene);
 const comicPass = new ComicPass(engine.scene, engine.camera);
 comicPass.renderToScreen = true;
 engine.addPass(comicPass);
@@ -27,7 +29,7 @@ interface PresetUI {
   title: string;
   desc: string;
   issueNum: string;
-  price: string;
+  edition: string;
   frameColor: string;
   mastheadBg: string;
   mastheadText: string;
@@ -35,6 +37,10 @@ interface PresetUI {
   captionBorder: string;
   captionText: string;
   sealColor: string;
+  ctrlBg: string;
+  ctrlBorder: string;
+  ctrlAccent: string;
+  ctrlText: string;
 }
 
 interface Preset {
@@ -67,7 +73,7 @@ const presets: Preset[] = [
       title: 'COMIC BOOK',
       desc: 'Real-time post-processing combining cel shading, Ben-Day halftone, CMYK misregistration, and hand-drawn line wobble.',
       issueNum: 'No.01',
-      price: '$3.99',
+      edition: '1ST ED.',
       frameColor: '#f5f0e1',
       mastheadBg: '#c41e2a',
       mastheadText: '#fff',
@@ -75,6 +81,10 @@ const presets: Preset[] = [
       captionBorder: '#1a1a1a',
       captionText: '#1a1a1a',
       sealColor: '#1a8c3f',
+      ctrlBg: 'rgba(40, 25, 10, 0.5)',
+      ctrlBorder: 'rgba(245, 240, 225, 0.15)',
+      ctrlAccent: 'rgba(196, 30, 42, 0.35)',
+      ctrlText: 'rgba(255, 255, 255, 0.7)',
     },
   },
   {
@@ -99,7 +109,7 @@ const presets: Preset[] = [
       title: 'POP ART',
       desc: 'Bold color blocking with oversized Ben-Day dots and heavy outlines. Warhol meets Lichtenstein.',
       issueNum: 'No.02',
-      price: '$4.50',
+      edition: 'LTD ED.',
       frameColor: '#f8f0d8',
       mastheadBg: '#f7d31e',
       mastheadText: '#1a1a1a',
@@ -107,6 +117,10 @@ const presets: Preset[] = [
       captionBorder: '#1a1a1a',
       captionText: '#fff',
       sealColor: '#1a6bcc',
+      ctrlBg: 'rgba(50, 35, 10, 0.5)',
+      ctrlBorder: 'rgba(248, 240, 216, 0.15)',
+      ctrlAccent: 'rgba(247, 211, 30, 0.4)',
+      ctrlText: 'rgba(255, 255, 255, 0.7)',
     },
   },
   {
@@ -131,7 +145,7 @@ const presets: Preset[] = [
       title: 'NOIR',
       desc: 'High-contrast black & white with dramatic ink pooling, deep shadows, and textured paper grain.',
       issueNum: 'No.03',
-      price: '$3.99',
+      edition: 'SPECIAL',
       frameColor: '#1a1525',
       mastheadBg: '#1a1525',
       mastheadText: '#a09888',
@@ -139,6 +153,10 @@ const presets: Preset[] = [
       captionBorder: '#4a4050',
       captionText: '#a09888',
       sealColor: '#4a4050',
+      ctrlBg: 'rgba(15, 10, 25, 0.6)',
+      ctrlBorder: 'rgba(74, 64, 80, 0.3)',
+      ctrlAccent: 'rgba(74, 64, 80, 0.5)',
+      ctrlText: 'rgba(160, 152, 136, 0.7)',
     },
   },
   {
@@ -163,7 +181,7 @@ const presets: Preset[] = [
       title: 'MANGA',
       desc: 'Japanese ink style with fine screentone, crisp edges, and desaturated tonal range.',
       issueNum: 'No.04',
-      price: '¥480',
+      edition: 'DELUXE',
       frameColor: '#e8e5e0',
       mastheadBg: '#f5f5f0',
       mastheadText: '#1a1a1a',
@@ -171,6 +189,10 @@ const presets: Preset[] = [
       captionBorder: '#1a1a1a',
       captionText: '#1a1a1a',
       sealColor: '#1a1a1a',
+      ctrlBg: 'rgba(20, 20, 20, 0.55)',
+      ctrlBorder: 'rgba(200, 200, 200, 0.12)',
+      ctrlAccent: 'rgba(26, 26, 26, 0.3)',
+      ctrlText: 'rgba(255, 255, 255, 0.7)',
     },
   },
   {
@@ -195,7 +217,7 @@ const presets: Preset[] = [
       title: 'VINTAGE PRINT',
       desc: 'Faded four-color process with heavy paper texture, slight misregistration, and aged yellowing.',
       issueNum: 'No.05',
-      price: '15¢',
+      edition: 'REPRINT',
       frameColor: '#d8c8a0',
       mastheadBg: '#6b4423',
       mastheadText: '#e8d8b0',
@@ -203,6 +225,10 @@ const presets: Preset[] = [
       captionBorder: '#6b4423',
       captionText: '#3a2a15',
       sealColor: '#6b4423',
+      ctrlBg: 'rgba(50, 30, 15, 0.5)',
+      ctrlBorder: 'rgba(216, 200, 160, 0.15)',
+      ctrlAccent: 'rgba(107, 68, 35, 0.4)',
+      ctrlText: 'rgba(255, 255, 255, 0.7)',
     },
   },
   {
@@ -227,7 +253,7 @@ const presets: Preset[] = [
       title: 'CLEAN',
       desc: 'Pure cel shading with sharp outlines. No halftone, no paper, no grit \u2014 just clean vector style.',
       issueNum: 'No.06',
-      price: '$3.99',
+      edition: 'VARIANT',
       frameColor: '#ffffff',
       mastheadBg: '#1a1a1a',
       mastheadText: '#fff',
@@ -235,6 +261,10 @@ const presets: Preset[] = [
       captionBorder: '#1a1a1a',
       captionText: '#1a1a1a',
       sealColor: '#1a1a1a',
+      ctrlBg: 'rgba(10, 10, 10, 0.45)',
+      ctrlBorder: 'rgba(255, 255, 255, 0.1)',
+      ctrlAccent: 'rgba(26, 26, 26, 0.3)',
+      ctrlText: 'rgba(255, 255, 255, 0.7)',
     },
   },
 ];
@@ -293,6 +323,7 @@ function applyPresetColors(colors: PresetColors, animate = true) {
   if (!animate) {
     bg.copy(colorAnim.targetBg);
     comicScene.groundMat.color.copy(colorAnim.targetGround);
+    helmetScene.groundMat.color.copy(colorAnim.targetGround);
     fog.color.copy(colorAnim.targetFog);
     fog.density = colorAnim.targetFogDensity;
     colorAnim.active = false;
@@ -315,6 +346,7 @@ function updateColorAnimation() {
 
   bg.copy(colorAnim.startBg).lerp(colorAnim.targetBg, e);
   comicScene.groundMat.color.copy(colorAnim.startGround).lerp(colorAnim.targetGround, e);
+  helmetScene.groundMat.color.copy(comicScene.groundMat.color);
   fog.color.copy(colorAnim.startFog).lerp(colorAnim.targetFog, e);
   fog.density = colorAnim.startFogDensity + (colorAnim.targetFogDensity - colorAnim.startFogDensity) * e;
 
@@ -326,16 +358,16 @@ function updateColorAnimation() {
 const mastheadTitle = document.querySelector('.masthead-title') as HTMLElement;
 const mastheadIssue = document.querySelector('.masthead-issue') as HTMLElement;
 const mastheadDate = document.querySelector('.masthead-date') as HTMLElement;
-const mastheadPrice = document.querySelector('.masthead-price') as HTMLElement;
+const mastheadEdition = document.querySelector('.masthead-edition') as HTMLElement;
 const captionP = document.querySelector('#caption p') as HTMLElement;
 
-const coverTextEls = [mastheadTitle, mastheadIssue, mastheadDate, mastheadPrice, captionP];
+const coverTextEls = [mastheadTitle, mastheadIssue, mastheadDate, mastheadEdition, captionP];
 
 function setCoverStyles(ui: PresetUI) {
   // Text content
   mastheadTitle.textContent = ui.title;
   mastheadIssue.textContent = ui.issueNum;
-  mastheadPrice.textContent = ui.price;
+  mastheadEdition.textContent = ui.edition;
   captionP.textContent = ui.desc;
 
   // CSS custom properties on :root — browser resolves + transitions computed values
@@ -347,6 +379,10 @@ function setCoverStyles(ui: PresetUI) {
   root.setProperty('--caption-border', ui.captionBorder);
   root.setProperty('--caption-text', ui.captionText);
   root.setProperty('--seal-color', ui.sealColor);
+  root.setProperty('--ctrl-bg', ui.ctrlBg);
+  root.setProperty('--ctrl-border', ui.ctrlBorder);
+  root.setProperty('--ctrl-accent', ui.ctrlAccent);
+  root.setProperty('--ctrl-text', ui.ctrlText);
 }
 
 function applyPresetUI(ui: PresetUI, animate: boolean) {
@@ -426,6 +462,11 @@ const presetsEl = document.getElementById('presets')!;
 let activeBtn: HTMLElement | null = null;
 const presetBtns: HTMLButtonElement[] = [];
 
+// Cursor-following hover highlight (Apple-style)
+const hoverHighlight = document.createElement('div');
+hoverHighlight.className = 'preset-hover';
+presetsEl.appendChild(hoverHighlight);
+
 // Sliding indicator
 const indicator = document.createElement('div');
 indicator.className = 'preset-indicator';
@@ -446,7 +487,21 @@ function updateIndicator(btn: HTMLElement) {
   indicator.style.width = btn.offsetWidth + 'px';
 }
 
-let hoverTimeout: ReturnType<typeof setTimeout> | null = null;
+function updateHoverHighlight(btn: HTMLElement) {
+  hoverHighlight.style.left = btn.offsetLeft + 'px';
+  hoverHighlight.style.width = btn.offsetWidth + 'px';
+}
+
+function showPreviewForBtn(btn: HTMLElement, index: number) {
+  if (!previewThumbnails[index]) return;
+  previewImg.src = previewThumbnails[index];
+  const btnCenter = btn.offsetLeft + btn.offsetWidth / 2;
+  const previewWidth = 200;
+  let left = btnCenter - previewWidth / 2;
+  left = Math.max(4, Math.min(left, presetsEl.offsetWidth - previewWidth - 4));
+  previewEl.style.left = left + 'px';
+  previewEl.classList.add('visible');
+}
 
 presets.forEach((preset, i) => {
   const btn = document.createElement('button');
@@ -465,19 +520,9 @@ presets.forEach((preset, i) => {
   });
 
   btn.addEventListener('mouseenter', () => {
-    if (!previewThumbnails[i]) return;
-    previewImg.src = previewThumbnails[i];
-    const btnCenter = btn.offsetLeft + btn.offsetWidth / 2;
-    const previewWidth = 200;
-    let left = btnCenter - previewWidth / 2;
-    left = Math.max(4, Math.min(left, presetsEl.offsetWidth - previewWidth - 4));
-    previewEl.style.left = left + 'px';
-    hoverTimeout = setTimeout(() => previewEl.classList.add('visible'), 250);
-  });
-
-  btn.addEventListener('mouseleave', () => {
-    if (hoverTimeout) { clearTimeout(hoverTimeout); hoverTimeout = null; }
-    previewEl.classList.remove('visible');
+    updateHoverHighlight(btn);
+    hoverHighlight.classList.add('visible');
+    showPreviewForBtn(btn, i);
   });
 
   presetsEl.appendChild(btn);
@@ -486,6 +531,12 @@ presets.forEach((preset, i) => {
     activeBtn = btn;
     requestAnimationFrame(() => updateIndicator(btn));
   }
+});
+
+// Hide hover highlight + preview when leaving the bar entirely
+presetsEl.addEventListener('mouseleave', () => {
+  hoverHighlight.classList.remove('visible');
+  previewEl.classList.remove('visible');
 });
 
 // Capture preview thumbnails for each preset
@@ -634,39 +685,37 @@ setTimeout(() => {
   }, 300);
 }, 1200);
 
-// ─── Lens mode toggle ───────────────────────────────
+// ─── Scene switcher ─────────────────────────────────
 
-const lensModes = ['PENCIL', 'X-RAY', 'VOID'];
-let lensMode = 0;
+const sceneNames = ['SHAPES', 'HELMET'];
+let activeScene = 0;
 
-const lensContainer = document.createElement('div');
-lensContainer.id = 'lens-modes';
-const lensBtns: HTMLButtonElement[] = [];
+const sceneContainer = document.createElement('div');
+sceneContainer.id = 'lens-modes';
+const sceneBtns: HTMLButtonElement[] = [];
 
-lensModes.forEach((mode, i) => {
+function switchScene(index: number) {
+  activeScene = index;
+  comicScene.setVisible(index === 0);
+  helmetScene.setVisible(index === 1);
+  sceneBtns.forEach(b => b.classList.remove('active'));
+  sceneBtns[index].classList.add('active');
+}
+
+sceneNames.forEach((name, i) => {
   const btn = document.createElement('button');
   btn.className = 'lens-btn' + (i === 0 ? ' active' : '');
-  btn.textContent = mode;
-  btn.addEventListener('click', () => {
-    lensMode = i;
-    u.uLensMode.value = lensMode;
-    lensBtns.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  });
-  lensContainer.appendChild(btn);
-  lensBtns.push(btn);
+  btn.textContent = name;
+  btn.addEventListener('click', () => switchScene(i));
+  sceneContainer.appendChild(btn);
+  sceneBtns.push(btn);
 });
 
-document.getElementById('overlay')!.appendChild(lensContainer);
+document.getElementById('overlay')!.appendChild(sceneContainer);
 
 window.addEventListener('keydown', (e) => {
-  if (e.key === '1') { lensMode = 0; }
-  else if (e.key === '2') { lensMode = 1; }
-  else if (e.key === '3') { lensMode = 2; }
-  else return;
-  u.uLensMode.value = lensMode;
-  lensBtns.forEach(b => b.classList.remove('active'));
-  lensBtns[lensMode].classList.add('active');
+  if (e.key === '1') switchScene(0);
+  else if (e.key === '2') switchScene(1);
 });
 
 // ─── Compare toggle (hold to see raw 3D) ────────────
@@ -694,9 +743,14 @@ window.addEventListener('keydown', (e) => {
   if (e.key === 'c' || e.key === 'C') {
     if (!e.repeat) startCompare();
   }
+  if (e.key === ' ') {
+    e.preventDefault();
+    if (!e.repeat) startCompare();
+  }
 });
 window.addEventListener('keyup', (e) => {
   if (e.key === 'c' || e.key === 'C') stopCompare();
+  if (e.key === ' ') stopCompare();
 });
 
 // ─── Mouse interaction (click-and-hold lens) ─────────
@@ -763,6 +817,7 @@ engine.controls.addEventListener('end', () => {
 
 engine.start((dt) => {
   comicScene.update(dt);
+  helmetScene.update(dt);
   const safeDt = Math.min(Math.max(dt, 0.001), 0.05);
 
   // ── Color animation tick ──

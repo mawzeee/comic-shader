@@ -2,16 +2,23 @@ import * as THREE from 'three';
 
 export class ComicScene {
   private objects: THREE.Mesh[] = [];
+  private group: THREE.Group;
   /** Exposed so main.ts can animate ground color per preset */
   groundMat: THREE.MeshStandardMaterial;
 
   constructor(scene: THREE.Scene) {
-    this.groundMat = this.createGround(scene);
-    this.createShapes(scene);
-    this.createLights(scene);
+    this.group = new THREE.Group();
+    scene.add(this.group);
+    this.groundMat = this.createGround();
+    this.createShapes();
+    this.createLights();
   }
 
-  private createGround(scene: THREE.Scene): THREE.MeshStandardMaterial {
+  setVisible(v: boolean) {
+    this.group.visible = v;
+  }
+
+  private createGround(): THREE.MeshStandardMaterial {
     const geo = new THREE.PlaneGeometry(500, 500);
     const mat = new THREE.MeshStandardMaterial({
       color: 0xe8dfd0,
@@ -21,24 +28,24 @@ export class ComicScene {
     const ground = new THREE.Mesh(geo, mat);
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
-    scene.add(ground);
+    this.group.add(ground);
     return mat;
   }
 
-  private createShapes(scene: THREE.Scene) {
-    // Hero: Large torus knot — center piece, dramatic curves
-    const heroGeo = new THREE.TorusKnotGeometry(1.1, 0.38, 200, 40, 2, 3);
-    const heroMat = new THREE.MeshStandardMaterial({
-      color: 0xe02020,
+  private createShapes() {
+    // Torus knot — hero shape
+    const knotGeo = new THREE.TorusKnotGeometry(0.9, 0.35, 128, 32);
+    const knotMat = new THREE.MeshStandardMaterial({
+      color: 0xcc2244,
       roughness: 0.3,
       metalness: 0.15,
     });
-    const hero = new THREE.Mesh(heroGeo, heroMat);
-    hero.position.set(0, 2.2, 0);
-    hero.castShadow = true;
-    hero.receiveShadow = true;
-    scene.add(hero);
-    this.objects.push(hero);
+    const knot = new THREE.Mesh(knotGeo, knotMat);
+    knot.position.set(0, 2.2, 0);
+    knot.castShadow = true;
+    knot.receiveShadow = true;
+    this.group.add(knot);
+    this.objects.push(knot);
 
     // Sphere — classic comic shape
     const sphereGeo = new THREE.SphereGeometry(0.85, 64, 64);
@@ -51,7 +58,7 @@ export class ComicScene {
     sphere.position.set(-2.8, 0.85, 1.5);
     sphere.castShadow = true;
     sphere.receiveShadow = true;
-    scene.add(sphere);
+    this.group.add(sphere);
     this.objects.push(sphere);
 
     // Dodecahedron — interesting facets for cel shading
@@ -66,7 +73,7 @@ export class ComicScene {
     dodec.position.set(2.6, 0.85, 1.8);
     dodec.castShadow = true;
     dodec.receiveShadow = true;
-    scene.add(dodec);
+    this.group.add(dodec);
     this.objects.push(dodec);
 
     // Tall cylinder — pillar
@@ -80,7 +87,7 @@ export class ComicScene {
     cyl.position.set(-1.2, 1.2, 3.0);
     cyl.castShadow = true;
     cyl.receiveShadow = true;
-    scene.add(cyl);
+    this.group.add(cyl);
     this.objects.push(cyl);
 
     // Torus — ring floating
@@ -95,7 +102,7 @@ export class ComicScene {
     torus.rotation.x = Math.PI * 0.3;
     torus.castShadow = true;
     torus.receiveShadow = true;
-    scene.add(torus);
+    this.group.add(torus);
     this.objects.push(torus);
 
     // Small icosahedron — accent
@@ -110,11 +117,11 @@ export class ComicScene {
     ico.position.set(3.2, 0.5, -0.5);
     ico.castShadow = true;
     ico.receiveShadow = true;
-    scene.add(ico);
+    this.group.add(ico);
     this.objects.push(ico);
   }
 
-  private createLights(scene: THREE.Scene) {
+  private createLights() {
     // Key light — dramatic
     const dirLight = new THREE.DirectionalLight(0xfff5e0, 3.0);
     dirLight.position.set(5, 10, 4);
@@ -128,36 +135,35 @@ export class ComicScene {
     dirLight.shadow.camera.top = 10;
     dirLight.shadow.camera.bottom = -10;
     dirLight.shadow.bias = -0.001;
-    scene.add(dirLight);
+    this.group.add(dirLight);
 
     // Strong ambient — comics are bright, shadows still have color
     const ambientLight = new THREE.AmbientLight(0xd0d4e8, 2.2);
-    scene.add(ambientLight);
+    this.group.add(ambientLight);
 
     // Fill light — from opposite side to soften shadows
     const fillLight = new THREE.DirectionalLight(0xb0c0e0, 1.8);
     fillLight.position.set(-5, 6, -3);
-    scene.add(fillLight);
+    this.group.add(fillLight);
 
     // Rim light from behind for edge separation
     const rimLight = new THREE.DirectionalLight(0xffe8d0, 0.8);
     rimLight.position.set(-2, 3, -6);
-    scene.add(rimLight);
+    this.group.add(rimLight);
   }
 
   update(dt: number) {
     const t = performance.now() * 0.001;
-    // Hero: slow twist
+    // Torus knot: slow, dramatic spin
     if (this.objects[0]) {
-      this.objects[0].rotation.y = t * 0.2;
-      this.objects[0].rotation.x = Math.sin(t * 0.15) * 0.1;
+      this.objects[0].rotation.y = t * 0.15;
     }
     // Dodecahedron: tumble
     if (this.objects[2]) {
       this.objects[2].rotation.y = t * 0.35;
       this.objects[2].rotation.z = t * 0.2;
     }
-    // Torus: spin
+    // Torus ring: spin + bob
     if (this.objects[4]) {
       this.objects[4].rotation.z = t * 0.4;
       this.objects[4].position.y = 1.8 + Math.sin(t * 0.6) * 0.3;

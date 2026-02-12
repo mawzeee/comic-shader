@@ -21,6 +21,10 @@
   --caption-border: #1a1a1a;
   --caption-text: #1a1a1a;
   --seal-color: #1a8c3f;
+  --ctrl-bg: rgba(40, 25, 10, 0.5);
+  --ctrl-border: rgba(245, 240, 225, 0.15);
+  --ctrl-accent: rgba(196, 30, 42, 0.35);
+  --ctrl-text: rgba(255, 255, 255, 0.7);
 }
 
 * {
@@ -107,7 +111,7 @@ canvas#canvas {
   transition: opacity 0.18s ease;
 }
 
-.masthead-price {
+.masthead-edition {
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
   font-weight: 600;
@@ -207,18 +211,20 @@ canvas#canvas {
   gap: 2px;
   justify-content: center;
   pointer-events: auto;
-  background: rgba(0, 0, 0, 0.55);
+  background: var(--ctrl-bg);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--ctrl-border);
   border-radius: 50px;
   padding: 4px;
+  transition: background-color 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .preset-btn {
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--ctrl-text);
   padding: 10px 16px;
   border-radius: 46px;
   font-family: 'JetBrains Mono', monospace;
@@ -235,21 +241,29 @@ canvas#canvas {
 
 .preset-btn:hover {
   color: rgba(255, 255, 255, 0.9);
-  animation: wobble 0.5s ease-out;
 }
 
 .preset-btn.active {
   color: #fff;
 }
 
-@keyframes wobble {
-  0% { transform: scale(1); }
-  15% { transform: scale(1.06) rotate(-1.5deg); }
-  30% { transform: scale(0.97) rotate(1deg); }
-  45% { transform: scale(1.02) rotate(-0.5deg); }
-  60% { transform: scale(0.99) rotate(0.3deg); }
-  75% { transform: scale(1.01); }
-  100% { transform: scale(1); }
+/* Cursor-following hover highlight (Apple-style) */
+.preset-hover {
+  position: absolute;
+  height: calc(100% - 8px);
+  top: 4px;
+  border-radius: 42px;
+  background: rgba(255, 255, 255, 0.08);
+  transition: left 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              width 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.15s ease;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.preset-hover.visible {
+  opacity: 1;
 }
 
 /* Sliding indicator behind active button */
@@ -258,10 +272,12 @@ canvas#canvas {
   height: calc(100% - 8px);
   top: 4px;
   border-radius: 42px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--ctrl-accent);
+  border: 1px solid var(--ctrl-border);
   transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+              width 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 1;
   pointer-events: none;
 }
@@ -272,24 +288,22 @@ canvas#canvas {
   bottom: calc(100% + 16px);
   width: 200px;
   border-radius: 16px;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--ctrl-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--ctrl-border);
   overflow: visible;
   opacity: 0;
-  transform: translateY(10px) scale(0.92);
-  transform-origin: bottom center;
-  transition: opacity 0.2s ease,
-              transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: none;
   z-index: 100;
   padding: 5px;
+  transition: left 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .preset-preview.visible {
   opacity: 1;
-  transform: translateY(0) scale(1);
 }
 
 .preset-preview img {
@@ -306,9 +320,9 @@ canvas#canvas {
   left: 50%;
   width: 12px;
   height: 12px;
-  background: rgba(0, 0, 0, 0.7);
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--ctrl-bg);
+  border-right: 1px solid var(--ctrl-border);
+  border-bottom: 1px solid var(--ctrl-border);
   transform: translateX(-50%) rotate(45deg);
 }
 
@@ -323,17 +337,19 @@ canvas#canvas {
 }
 
 #credits a {
-  color: rgba(255,255,255,0.3);
+  color: var(--ctrl-text);
+  opacity: 0.5;
   text-decoration: none;
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
   font-weight: 400;
   letter-spacing: 0.3px;
-  transition: color 0.2s;
+  transition: color 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.2s ease;
 }
 
 #credits a:hover {
-  color: rgba(255,255,255,0.6);
+  opacity: 0.85;
 }
 
 /* Reveal flash */
@@ -367,11 +383,11 @@ canvas#canvas {
 }
 
 .lens-btn {
-  background: rgba(0, 0, 0, 0.45);
+  background: var(--ctrl-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--ctrl-border);
+  color: var(--ctrl-text);
   padding: 8px 16px;
   border-radius: 6px;
   font-family: 'JetBrains Mono', monospace;
@@ -379,14 +395,17 @@ canvas#canvas {
   font-weight: 500;
   letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   text-transform: uppercase;
   user-select: none;
   box-shadow: none;
 }
 
 .lens-btn:hover {
-  background: rgba(0, 0, 0, 0.55);
   border-color: rgba(255, 255, 255, 0.28);
   color: rgba(255, 255, 255, 0.95);
   transform: translateY(-1px);
@@ -395,9 +414,9 @@ canvas#canvas {
 
 .lens-btn.active {
   background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.5);
+  border-color: var(--ctrl-accent);
   color: #fff;
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 20px var(--ctrl-accent), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   transform: none;
 }
 
@@ -408,11 +427,11 @@ canvas#canvas {
   bottom: 24px;
   left: 24px;
   pointer-events: auto;
-  background: rgba(0, 0, 0, 0.45);
+  background: var(--ctrl-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--ctrl-border);
+  color: var(--ctrl-text);
   padding: 8px 16px;
   border-radius: 6px;
   font-family: 'JetBrains Mono', monospace;
@@ -420,14 +439,17 @@ canvas#canvas {
   font-weight: 500;
   letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   text-transform: uppercase;
   user-select: none;
   box-shadow: none;
 }
 
 #compare:hover {
-  background: rgba(0, 0, 0, 0.55);
   border-color: rgba(255, 255, 255, 0.28);
   color: rgba(255, 255, 255, 0.95);
   transform: translateY(-1px);
@@ -436,15 +458,16 @@ canvas#canvas {
 
 #compare.active {
   background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.5);
+  border-color: var(--ctrl-accent);
   color: #fff;
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 20px var(--ctrl-accent), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   transform: none;
 }
 
 .key-hint {
   display: inline-block;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--ctrl-accent);
+  opacity: 0.6;
   padding: 2px 6px;
   border-radius: 3px;
   font-family: 'JetBrains Mono', monospace;
@@ -453,12 +476,13 @@ canvas#canvas {
   margin-left: 8px;
   vertical-align: middle;
   letter-spacing: 0.5px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--ctrl-border);
+  transition: background-color 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 #compare.active .key-hint {
-  background: rgba(255,255,255,0.1);
-  border-color: rgba(255,255,255,0.15);
+  opacity: 0.8;
 }
 
 /* lil-gui override: move below seal */
@@ -485,7 +509,7 @@ canvas#canvas {
   #caption, #caption p {
     transition: none;
   }
-  .masthead-issue, .masthead-date, .masthead-title, .masthead-price {
+  .masthead-issue, .masthead-date, .masthead-title, .masthead-edition {
     transition: none;
   }
   #flash {
@@ -495,10 +519,16 @@ canvas#canvas {
     transition: none;
     animation: none !important;
   }
-  .preset-indicator {
+  .preset-indicator, .preset-hover {
     transition: none;
   }
   .preset-preview {
+    transition: none;
+  }
+  #presets, #compare, .lens-btn {
+    transition: none;
+  }
+  .key-hint {
     transition: none;
   }
 }
