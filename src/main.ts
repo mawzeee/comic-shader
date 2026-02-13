@@ -611,6 +611,22 @@ function capturePreviewThumbnails() {
 
 const gui = new GUI({ title: 'Controls' });
 
+// Toggle button for GUI visibility
+const guiToggle = document.createElement('button');
+guiToggle.id = 'gui-toggle';
+guiToggle.innerHTML = '&#9881; CONTROLS';
+document.getElementById('overlay')!.appendChild(guiToggle);
+
+// Start hidden
+gui.domElement.classList.add('gui-hidden');
+let guiVisible = false;
+
+guiToggle.addEventListener('click', () => {
+  guiVisible = !guiVisible;
+  gui.domElement.classList.toggle('gui-hidden', !guiVisible);
+  guiToggle.classList.toggle('active', guiVisible);
+});
+
 const guiControllers: Record<string, ReturnType<typeof gui.add>> = {};
 
 function addToggle(folder: GUI, label: string, uniform: string) {
@@ -697,13 +713,14 @@ fCam.add(camReadout, 'x').listen().disable();
 fCam.add(camReadout, 'y').listen().disable();
 fCam.add(camReadout, 'z').listen().disable();
 fCam.add(camReadout, 'Copy Values');
-fCam.open();
-
 // Close less important folders by default
+f3.close();
 f4.close();
 f5.close();
 f6.close();
 f7.close();
+fHelmet.close();
+fCam.close();
 
 function updateGuiFromUniforms() {
   for (const [uniform, ctrl] of Object.entries(guiControllers)) {

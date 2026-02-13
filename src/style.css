@@ -123,7 +123,7 @@ canvas#canvas {
 
 #seal {
   position: absolute;
-  top: 76px;
+  bottom: 110px;
   right: 24px;
   width: 72px;
   height: 72px;
@@ -211,20 +211,20 @@ canvas#canvas {
   gap: 2px;
   justify-content: center;
   pointer-events: auto;
-  background: var(--ctrl-bg);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid var(--ctrl-border);
+  background: rgba(15, 10, 8, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 50px;
   padding: 4px;
-  transition: background-color 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 0.25s ease,
+              border-color 0.25s ease;
 }
 
 .preset-btn {
   background: transparent;
   border: none;
-  color: var(--ctrl-text);
+  color: rgba(255, 255, 255, 0.45);
   padding: 10px 16px;
   border-radius: 46px;
   font-family: 'JetBrains Mono', monospace;
@@ -240,7 +240,7 @@ canvas#canvas {
 }
 
 .preset-btn:hover {
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .preset-btn.active {
@@ -272,58 +272,48 @@ canvas#canvas {
   height: calc(100% - 8px);
   top: 4px;
   border-radius: 42px;
-  background: var(--ctrl-accent);
-  border: 1px solid var(--ctrl-border);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              width 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              background-color 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+              width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 1;
   pointer-events: none;
 }
 
-/* Preview popup — morphs from the bar */
+/* Preview popup — morphs up from the bar */
 .preset-preview {
   position: absolute;
-  bottom: calc(100% + 16px);
+  bottom: calc(100% + 10px);
   width: 200px;
-  border-radius: 16px;
-  background: var(--ctrl-bg);
+  border-radius: 14px;
+  background: rgba(15, 10, 8, 0.75);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--ctrl-border);
-  overflow: visible;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  overflow: hidden;
   opacity: 0;
   pointer-events: none;
   z-index: 100;
-  padding: 5px;
-  transition: left 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-              background-color 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 4px;
+  transform: scale(0.6) translateY(12px);
+  transform-origin: bottom center;
+  filter: blur(4px);
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              left 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .preset-preview.visible {
   opacity: 1;
+  transform: scale(1) translateY(0);
+  filter: blur(0px);
 }
 
 .preset-preview img {
   width: 100%;
   display: block;
-  border-radius: 12px;
-}
-
-/* Morph connector stem */
-.preset-preview::after {
-  content: '';
-  position: absolute;
-  bottom: -6px;
-  left: 50%;
-  width: 12px;
-  height: 12px;
-  background: var(--ctrl-bg);
-  border-right: 1px solid var(--ctrl-border);
-  border-bottom: 1px solid var(--ctrl-border);
-  transform: translateX(-50%) rotate(45deg);
+  border-radius: 10px;
 }
 
 /* Credits */
@@ -383,11 +373,11 @@ canvas#canvas {
 }
 
 .lens-btn {
-  background: var(--ctrl-bg);
+  background: rgba(15, 10, 8, 0.65);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--ctrl-border);
-  color: var(--ctrl-text);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.5);
   padding: 8px 16px;
   border-radius: 6px;
   font-family: 'JetBrains Mono', monospace;
@@ -395,29 +385,23 @@ canvas#canvas {
   font-weight: 500;
   letter-spacing: 0.5px;
   cursor: pointer;
-  transition: background-color 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-              color 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 0.25s ease,
+              border-color 0.25s ease,
+              color 0.25s ease;
   text-transform: uppercase;
   user-select: none;
-  box-shadow: none;
 }
 
 .lens-btn:hover {
-  border-color: rgba(255, 255, 255, 0.28);
-  color: rgba(255, 255, 255, 0.95);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  background: rgba(25, 20, 15, 0.75);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .lens-btn.active {
   background: rgba(255, 255, 255, 0.12);
-  border-color: var(--ctrl-accent);
+  border-color: rgba(255, 255, 255, 0.25);
   color: #fff;
-  box-shadow: 0 0 20px var(--ctrl-accent), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  transform: none;
 }
 
 /* Compare toggle */
@@ -427,11 +411,11 @@ canvas#canvas {
   bottom: 24px;
   left: 24px;
   pointer-events: auto;
-  background: var(--ctrl-bg);
+  background: rgba(15, 10, 8, 0.65);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--ctrl-border);
-  color: var(--ctrl-text);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.5);
   padding: 8px 16px;
   border-radius: 6px;
   font-family: 'JetBrains Mono', monospace;
@@ -439,29 +423,23 @@ canvas#canvas {
   font-weight: 500;
   letter-spacing: 0.5px;
   cursor: pointer;
-  transition: background-color 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-              color 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 0.25s ease,
+              border-color 0.25s ease,
+              color 0.25s ease;
   text-transform: uppercase;
   user-select: none;
-  box-shadow: none;
 }
 
 #compare:hover {
-  border-color: rgba(255, 255, 255, 0.28);
-  color: rgba(255, 255, 255, 0.95);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  background: rgba(25, 20, 15, 0.75);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 #compare.active {
   background: rgba(255, 255, 255, 0.12);
-  border-color: var(--ctrl-accent);
+  border-color: rgba(255, 255, 255, 0.25);
   color: #fff;
-  box-shadow: 0 0 20px var(--ctrl-accent), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  transform: none;
 }
 
 .key-hint {
@@ -485,15 +463,60 @@ canvas#canvas {
   opacity: 0.8;
 }
 
-/* lil-gui override: move below seal */
+/* GUI toggle button */
+#gui-toggle {
+  position: absolute;
+  top: 68px;
+  right: 24px;
+  background: rgba(15, 10, 8, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.5);
+  padding: 7px 14px;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: background-color 0.25s ease,
+              border-color 0.25s ease,
+              color 0.25s ease;
+  text-transform: uppercase;
+  user-select: none;
+  pointer-events: auto;
+  z-index: 21;
+}
+
+#gui-toggle:hover {
+  background: rgba(25, 20, 15, 0.75);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+#gui-toggle.active {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+/* lil-gui override: directly under toggle button */
 .lil-gui.root {
   position: fixed !important;
-  top: 172px !important;
+  top: 102px !important;
   right: 24px !important;
   width: 240px !important;
-  max-height: calc(100vh - 220px) !important;
+  max-height: min(60vh, calc(100vh - 200px)) !important;
   overflow-y: auto !important;
   z-index: 20 !important;
+  transition: opacity 0.2s ease, transform 0.2s ease !important;
+}
+
+.lil-gui.root.gui-hidden {
+  opacity: 0 !important;
+  transform: translateY(-8px) !important;
+  pointer-events: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
