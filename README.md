@@ -4,11 +4,7 @@ A real-time post-processing shader that transforms any 3D scene into comic book 
 
 Built with [Three.js](https://threejs.org/) and WebGL 2.
 
-[Article on Codrops](https://tympanus.net/codrops/?p=XXXXX)
-
-[Demo](https://tympanus.net/Tutorials/ComicBookShader/)
-
-![Comic Book Shader](https://tympanus.net/codrops/wp-content/uploads/2026/02/comic-book-shader.jpg)
+[Live Demo](https://comic-book-shader.netlify.app)
 
 ## Features
 
@@ -57,10 +53,6 @@ Each effect can be toggled and tuned independently via uniforms. Presets animate
 - [Three.js](https://threejs.org/)
 - [DamagedHelmet](https://github.com/KhronosGroup/glTF-Sample-Models) by KhronosGroup (CC BY 4.0)
 - [lil-gui](https://lil-gui.georgealways.com/)
-
-## Misc
-
-Follow Codrops: [Bluesky](https://bsky.app/profile/codrops.bsky.social) · [GitHub](https://github.com/codrops) · [Instagram](https://www.instagram.com/codropsss/) · [X](https://x.com/coabordrops)
 
 ## License
 
