@@ -2,6 +2,7 @@
   "name": "comic-book-shader",
   "private": true,
   "version": "1.0.0",
+  "description": "Real-time comic book shader — cel shading, halftone, CMYK, and ink wobble in a single GLSL post-processing pass",
   "type": "module",
   "scripts": {
     "dev": "vite",

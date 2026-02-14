@@ -580,9 +580,18 @@ presets.forEach((preset, i) => {
     applyPresetUI(preset.ui, true);
     setLensPreset(presets[contrastMap[i]]);
     updateIndicator(btn);
+    // Dismiss preview and hover highlight on click
+    previewEl.classList.remove('visible');
+    hoverHighlight.classList.remove('visible');
   });
 
   btn.addEventListener('mouseenter', () => {
+    // Don't show hover highlight on the active button (indicator already marks it)
+    if (btn === activeBtn) {
+      hoverHighlight.classList.remove('visible');
+      previewEl.classList.remove('visible');
+      return;
+    }
     updateHoverHighlight(btn);
     hoverHighlight.classList.add('visible');
     showPreviewForBtn(btn, i);

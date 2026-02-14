@@ -60,7 +60,7 @@ Each effect can be toggled and tuned independently via uniforms. Presets animate
 
 ## Misc
 
-Follow Codrops: [Bluesky](https://bsky.app/profile/codrops.bsky.social) · [GitHub](https://github.com/codrops) · [Instagram](https://www.instagram.com/codropsss/) · [X](http://www.twitter.com/coabordrops)
+Follow Codrops: [Bluesky](https://bsky.app/profile/codrops.bsky.social) · [GitHub](https://github.com/codrops) · [Instagram](https://www.instagram.com/codropsss/) · [X](https://x.com/coabordrops)
 
 ## License
 

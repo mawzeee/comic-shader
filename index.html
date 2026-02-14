@@ -15,11 +15,14 @@
     <meta property="og:description" content="Real-time post-processing combining cel shading, Ben-Day halftone, CMYK misregistration, and hand-drawn line wobble." />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Codrops" />
+    <meta property="og:url" content="https://tympanus.net/Tutorials/ComicBookShader/" />
+    <meta property="og:image" content="https://tympanus.net/codrops/wp-content/uploads/2026/02/comic-book-shader.jpg" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Comic Book Shader | Codrops" />
     <meta name="twitter:description" content="Real-time post-processing combining cel shading, halftone, and hand-drawn line wobble." />
+    <meta name="twitter:image" content="https://tympanus.net/codrops/wp-content/uploads/2026/02/comic-book-shader.jpg" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -74,7 +77,13 @@
       <!-- Controls -->
       <div id="presets" role="tablist" aria-label="Shader presets"></div>
       <button id="compare" aria-label="Hold to compare with raw 3D">COMPARE <span class="key-hint">SPACE</span></button>
-      <div id="credits"><a href="#">Three.js &middot; WebGL 2</a></div>
+      <div id="credits">
+        <a href="https://karim-saab.com/" target="_blank" rel="noopener">karim-saab.com</a>
+        <span class="credits-sep">&middot;</span>
+        <a href="https://x.com/mawzeeeee" target="_blank" rel="noopener">@mawzeeeee</a>
+        <span class="credits-sep">&middot;</span>
+        <a href="https://github.com/mawzeee/comic-shader" target="_blank" rel="noopener">GitHub</a>
+      </div>
     </div>
 
     <script type="module" src="/src/main.ts"></script>
