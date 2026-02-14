@@ -88,13 +88,10 @@ export class Engine {
     this.camera.updateProjectionMatrix();
 
     this.renderer.setSize(w, h);
+    // composer.setSize handles renderTarget1 (= this.renderTarget) with pixel ratio,
+    // and notifies passes via pass.setSize(). Don't resize renderTarget again —
+    // that would undo the pixel-ratio scaling and mismatch the ping-pong buffers.
     this.composer.setSize(w, h);
-
-    // Resize depth texture to match (composer doesn't handle this)
-    this.depthTexture.image.width = w;
-    this.depthTexture.image.height = h;
-    this.depthTexture.needsUpdate = true;
-    this.renderTarget.setSize(w, h);
   }
 
   start(onUpdate?: (dt: number) => void) {

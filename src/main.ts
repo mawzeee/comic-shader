@@ -583,6 +583,8 @@ function capturePreviewThumbnails() {
   const origIndex = activePresetIndex;
   const origPreset = presets[origIndex];
 
+  previewThumbnails.length = 0;
+
   for (let i = 0; i < presets.length; i++) {
     const p = presets[i];
     for (const key of Object.keys(p.values)) {
@@ -789,6 +791,8 @@ function switchScene(index: number) {
   sceneBtns[index].classList.add('active');
   // Animate bg/fog to the new scene's color palette
   applyPresetColors(presets[activePresetIndex]);
+  // Re-capture preview thumbnails for the new scene
+  setTimeout(() => capturePreviewThumbnails(), 400);
 }
 
 sceneNames.forEach((name, i) => {

@@ -519,6 +519,216 @@ canvas#canvas {
   pointer-events: none !important;
 }
 
+/* ─── Responsive: Tablet ─── */
+
+@media (max-width: 768px) {
+  #overlay {
+    box-shadow: inset 0 0 0 8px var(--frame-color);
+  }
+
+  #masthead {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    height: 44px;
+    padding: 0 14px;
+  }
+
+  .masthead-title {
+    font-size: 24px;
+    letter-spacing: 1.5px;
+  }
+
+  .masthead-issue { font-size: 10px; }
+  .masthead-date { font-size: 8px; }
+  .masthead-edition { font-size: 10px; }
+
+  #gui-toggle {
+    top: 56px;
+    right: 16px;
+    font-size: 9px;
+    padding: 6px 10px;
+  }
+
+  .lil-gui.root {
+    top: 86px !important;
+    right: 8px !important;
+    width: 220px !important;
+    max-height: min(55vh, calc(100vh - 180px)) !important;
+  }
+
+  #caption {
+    bottom: 100px;
+    left: 16px;
+    max-width: 220px;
+    padding: 10px 12px;
+  }
+
+  #caption p { font-size: 11px; }
+
+  #seal {
+    bottom: 90px;
+    right: 16px;
+    width: 60px;
+    height: 60px;
+  }
+
+  .seal-mid { font-size: 13px; }
+  .seal-top, .seal-bot { font-size: 5px; }
+
+  #presets {
+    bottom: 16px;
+    padding: 3px;
+    max-width: calc(100vw - 32px);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    justify-content: flex-start;
+  }
+
+  #presets::-webkit-scrollbar { display: none; }
+
+  .preset-btn {
+    padding: 8px 12px;
+    font-size: 9px;
+  }
+
+  .preset-preview { display: none; }
+
+  #compare {
+    bottom: 16px;
+    left: 16px;
+    padding: 6px 12px;
+    font-size: 10px;
+  }
+
+  #lens-modes {
+    bottom: 16px;
+    right: 16px;
+    gap: 6px;
+  }
+
+  .lens-btn {
+    padding: 6px 12px;
+    font-size: 10px;
+  }
+
+  #credits {
+    bottom: 56px;
+    right: 16px;
+  }
+
+  #credits a { font-size: 9px; }
+}
+
+/* ─── Responsive: Mobile ─── */
+
+@media (max-width: 480px) {
+  #overlay {
+    box-shadow: inset 0 0 0 5px var(--frame-color);
+  }
+
+  #masthead {
+    top: 5px;
+    left: 5px;
+    right: 5px;
+    height: 38px;
+    padding: 0 10px;
+  }
+
+  .masthead-title {
+    font-size: 18px;
+    letter-spacing: 1px;
+  }
+
+  .masthead-issue { font-size: 9px; }
+  .masthead-date { font-size: 7px; }
+  .masthead-edition { font-size: 9px; }
+
+  #gui-toggle {
+    top: 47px;
+    right: 10px;
+    font-size: 8px;
+    padding: 5px 8px;
+  }
+
+  .lil-gui.root {
+    top: 72px !important;
+    right: 5px !important;
+    left: 5px !important;
+    width: auto !important;
+    max-height: min(50vh, calc(100vh - 160px)) !important;
+  }
+
+  #caption {
+    bottom: 96px;
+    left: 10px;
+    max-width: 180px;
+    padding: 8px 10px;
+  }
+
+  #caption p {
+    font-size: 10px;
+    line-height: 1.4;
+  }
+
+  #seal {
+    bottom: 96px;
+    right: 10px;
+    width: 50px;
+    height: 50px;
+  }
+
+  .seal-mid { font-size: 11px; }
+  .seal-top, .seal-bot { font-size: 4.5px; }
+
+  #presets {
+    bottom: 48px;
+    left: 10px;
+    right: 10px;
+    transform: none;
+    max-width: none;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    border-radius: 30px;
+    padding: 3px;
+    justify-content: flex-start;
+  }
+
+  #presets::-webkit-scrollbar { display: none; }
+
+  .preset-btn {
+    padding: 7px 10px;
+    font-size: 8px;
+    letter-spacing: 0.3px;
+  }
+
+  .preset-preview { display: none; }
+
+  #compare {
+    bottom: 10px;
+    left: 10px;
+    padding: 5px 10px;
+    font-size: 9px;
+  }
+
+  .key-hint { display: none; }
+
+  #lens-modes {
+    bottom: 10px;
+    right: 10px;
+    gap: 4px;
+  }
+
+  .lens-btn {
+    padding: 5px 10px;
+    font-size: 9px;
+  }
+
+  #credits { display: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   #overlay {
     transition: none;

@@ -9,8 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "three": "^0.170.0",
-    "lil-gui": "^0.20.0"
+    "lil-gui": "^0.20.0",
+    "three": "^0.170.0"
   },
   "devDependencies": {
     "@types/three": "^0.170.0",
