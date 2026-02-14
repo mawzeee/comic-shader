@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
 import { Engine } from './engine/Engine';
 import { ComicScene } from './comic/ComicScene';
 import { HelmetScene } from './comic/HelmetScene';
@@ -26,8 +28,23 @@ const engine = new Engine(canvas);
 const comicScene = new ComicScene(engine.scene);
 const helmetScene = new HelmetScene(engine.scene);
 const comicPass = new ComicPass(engine.scene, engine.camera);
-comicPass.renderToScreen = true;
 engine.addPass(comicPass);
+
+// FXAA smooths pixel-level outline aliasing after the comic shader
+const fxaaPass = new ShaderPass(FXAAShader);
+fxaaPass.renderToScreen = true;
+engine.addPass(fxaaPass);
+
+// Update FXAA resolution on resize
+const updateFxaaResolution = () => {
+  const dpr = engine.renderer.getPixelRatio();
+  fxaaPass.material.uniforms['resolution'].value.set(
+    1 / (window.innerWidth * dpr),
+    1 / (window.innerHeight * dpr)
+  );
+};
+updateFxaaResolution();
+window.addEventListener('resize', updateFxaaResolution);
 
 const u = comicPass.uniforms;
 

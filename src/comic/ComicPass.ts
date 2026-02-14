@@ -15,17 +15,15 @@ export class ComicPass extends Pass {
     this.scene = scene;
     this.camera = camera;
 
-    // Normal buffer render target (sized at device pixels for sharp outlines)
-    const dpr = Math.min(window.devicePixelRatio, 2);
-    this.normalRenderTarget = new THREE.WebGLRenderTarget(
-      Math.floor(window.innerWidth * dpr),
-      Math.floor(window.innerHeight * dpr),
-      {
-        minFilter: THREE.NearestFilter,
-        magFilter: THREE.NearestFilter,
-        type: THREE.HalfFloatType,
-      }
-    );
+    // Normal buffer — placeholder size, resized by setSize() from EffectComposer.
+    // NearestFilter gives discrete per-texel normals so the Sobel kernel
+    // produces temporally stable edges (no sub-pixel interpolation drift).
+    // FXAA post-pass smooths the final pixel-level aliasing.
+    this.normalRenderTarget = new THREE.WebGLRenderTarget(1, 1, {
+      minFilter: THREE.NearestFilter,
+      magFilter: THREE.NearestFilter,
+      type: THREE.HalfFloatType,
+    });
 
     this.normalOverrideMaterial = new THREE.MeshNormalMaterial();
 

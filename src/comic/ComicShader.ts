@@ -221,8 +221,10 @@ vec3 applyStyle(vec2 baseUv, vec2 texel, Style s) {
   vec2 uv = baseUv;
 
   // Hand-drawn wobble: perturb UVs for all subsequent reads
+  // Use a STATIC noise pattern (no uTime) so the wobble is spatially consistent
+  // and does not cause per-frame jitter in subsequent Sobel edge detection.
   if (s.enableWobble > 0.5) {
-    vec2 noiseCoord = baseUv * s.wobbleFreq + uTime * 0.8;
+    vec2 noiseCoord = baseUv * s.wobbleFreq;
     float wx = (noise(noiseCoord) - 0.5) * 2.0;
     float wy = (noise(noiseCoord + vec2(43.0, 17.0)) - 0.5) * 2.0;
     uv += vec2(wx, wy) * texel * s.wobbleAmount;
@@ -297,55 +299,54 @@ vec3 applyStyle(vec2 baseUv, vec2 texel, Style s) {
   }
 
   // Outlines (Sobel on normals + depth)
+  // Use baseUv (not wobble-perturbed uv) so Sobel samples stay locked to
+  // screen-space geometry — prevents edge crawling as the camera moves.
   if (s.enableOutlines > 0.5) {
-    float cd = linearizeDepth(texture(uDepthBuffer, uv).r);
+    float cd = linearizeDepth(texture(uDepthBuffer, baseUv).r);
     float df = clamp(1.0 - (cd - uCameraNear) / (uCameraFar * 0.3), 0.6, 1.3);
     float wobbleMult = 1.0;
     if (s.enableWobble > 0.5) {
-      float edgeNoise = noise(uv * s.wobbleFreq * 2.0 + uTime * 1.2);
+      float edgeNoise = noise(baseUv * s.wobbleFreq * 2.0);
       wobbleMult = 0.7 + edgeNoise * 0.6;
     }
     vec2 t = texel * s.outlineThickness * df * wobbleMult;
 
-    vec3 ntl = texture(uNormalBuffer, uv + vec2(-t.x, t.y)).rgb;
-    vec3 ntc = texture(uNormalBuffer, uv + vec2(0.0, t.y)).rgb;
-    vec3 ntr = texture(uNormalBuffer, uv + vec2(t.x, t.y)).rgb;
-    vec3 nml = texture(uNormalBuffer, uv + vec2(-t.x, 0.0)).rgb;
-    vec3 nmr = texture(uNormalBuffer, uv + vec2(t.x, 0.0)).rgb;
-    vec3 nbl = texture(uNormalBuffer, uv + vec2(-t.x, -t.y)).rgb;
-    vec3 nbc = texture(uNormalBuffer, uv + vec2(0.0, -t.y)).rgb;
-    vec3 nbr = texture(uNormalBuffer, uv + vec2(t.x, -t.y)).rgb;
+    vec3 ntl = texture(uNormalBuffer, baseUv + vec2(-t.x, t.y)).rgb;
+    vec3 ntc = texture(uNormalBuffer, baseUv + vec2(0.0, t.y)).rgb;
+    vec3 ntr = texture(uNormalBuffer, baseUv + vec2(t.x, t.y)).rgb;
+    vec3 nml = texture(uNormalBuffer, baseUv + vec2(-t.x, 0.0)).rgb;
+    vec3 nmr = texture(uNormalBuffer, baseUv + vec2(t.x, 0.0)).rgb;
+    vec3 nbl = texture(uNormalBuffer, baseUv + vec2(-t.x, -t.y)).rgb;
+    vec3 nbc = texture(uNormalBuffer, baseUv + vec2(0.0, -t.y)).rgb;
+    vec3 nbr = texture(uNormalBuffer, baseUv + vec2(t.x, -t.y)).rgb;
     vec3 ngx = -ntl - 2.0 * nml - nbl + ntr + 2.0 * nmr + nbr;
     vec3 ngy = -ntl - 2.0 * ntc - ntr + nbl + 2.0 * nbc + nbr;
     float ne = length(ngx) + length(ngy);
 
-    float dtl = linearizeDepth(texture(uDepthBuffer, uv + vec2(-t.x, t.y)).r);
-    float dtc = linearizeDepth(texture(uDepthBuffer, uv + vec2(0.0, t.y)).r);
-    float dtr = linearizeDepth(texture(uDepthBuffer, uv + vec2(t.x, t.y)).r);
-    float dml = linearizeDepth(texture(uDepthBuffer, uv + vec2(-t.x, 0.0)).r);
-    float dmr = linearizeDepth(texture(uDepthBuffer, uv + vec2(t.x, 0.0)).r);
-    float dbl = linearizeDepth(texture(uDepthBuffer, uv + vec2(-t.x, -t.y)).r);
-    float dbc = linearizeDepth(texture(uDepthBuffer, uv + vec2(0.0, -t.y)).r);
-    float dbr = linearizeDepth(texture(uDepthBuffer, uv + vec2(t.x, -t.y)).r);
+    float dtl = linearizeDepth(texture(uDepthBuffer, baseUv + vec2(-t.x, t.y)).r);
+    float dtc = linearizeDepth(texture(uDepthBuffer, baseUv + vec2(0.0, t.y)).r);
+    float dtr = linearizeDepth(texture(uDepthBuffer, baseUv + vec2(t.x, t.y)).r);
+    float dml = linearizeDepth(texture(uDepthBuffer, baseUv + vec2(-t.x, 0.0)).r);
+    float dmr = linearizeDepth(texture(uDepthBuffer, baseUv + vec2(t.x, 0.0)).r);
+    float dbl = linearizeDepth(texture(uDepthBuffer, baseUv + vec2(-t.x, -t.y)).r);
+    float dbc = linearizeDepth(texture(uDepthBuffer, baseUv + vec2(0.0, -t.y)).r);
+    float dbr = linearizeDepth(texture(uDepthBuffer, baseUv + vec2(t.x, -t.y)).r);
     float dgx = -dtl - 2.0 * dml - dbl + dtr + 2.0 * dmr + dbr;
     float dgy = -dtl - 2.0 * dtc - dtr + dbl + 2.0 * dbc + dbr;
-    // Quadratic normalization kills grazing-angle artifacts on the ground plane
     float de = (abs(dgx) + abs(dgy)) / (cd * cd * 0.12 + cd * 0.3 + 0.15);
 
     ne = min(ne, 3.0);
-    // Separate edges: depth = silhouette (thick), normal = crease (thin)
     float deScaled = de * 1.2;
     float neScaled = ne * 0.25;
-    float silhouetteAA = fwidth(deScaled) * 1.5;
-    float creaseAA = fwidth(neScaled) * 1.5;
-    float silhouette = smoothstep(s.outlineThreshold - silhouetteAA, s.outlineThreshold + silhouetteAA, deScaled);
-    float crease = smoothstep(s.outlineThreshold + 0.1 - creaseAA, s.outlineThreshold + 0.1 + creaseAA, neScaled);
+    float aaWidth = length(texel) * 1.5;
+    float silhouette = smoothstep(s.outlineThreshold - aaWidth, s.outlineThreshold + aaWidth, deScaled);
+    float crease = smoothstep(s.outlineThreshold + 0.1 - aaWidth, s.outlineThreshold + 0.1 + aaWidth, neScaled);
 
     // Ink pooling: where both silhouette + crease are strong, add extra weight
     float pooling = smoothstep(0.1, 0.6, silhouette * crease) * 0.5;
 
     // Fresnel thickening: normals facing away (normal.z near 0) → thicker
-    vec3 centerNorm = texture(uNormalBuffer, uv).rgb * 2.0 - 1.0;
+    vec3 centerNorm = texture(uNormalBuffer, baseUv).rgb * 2.0 - 1.0;
     float fresnel = 1.0 - abs(centerNorm.z);
     float fresnelThick = smoothstep(0.5, 0.9, fresnel) * 0.3;
 
@@ -355,8 +356,7 @@ vec3 applyStyle(vec2 baseUv, vec2 texel, Style s) {
 
     // Uniform edge fallback
     float uniformEdgeVal = max(ne * 0.25, de * 1.2);
-    float uniformAA = fwidth(uniformEdgeVal) * 1.5;
-    float uniformEdge = smoothstep(s.outlineThreshold - uniformAA, s.outlineThreshold + uniformAA, uniformEdgeVal);
+    float uniformEdge = smoothstep(s.outlineThreshold - aaWidth, s.outlineThreshold + aaWidth, uniformEdgeVal);
 
     // Blend between uniform and variable
     float edge = mix(uniformEdge, variableEdge, s.outlineVariation);
