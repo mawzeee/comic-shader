@@ -45,26 +45,25 @@ export class Engine {
     this.controls.target.set(0, 1.5, 0);
     this.controls.update();
 
-    // Render target with depth texture for post-processing
-    this.depthTexture = new THREE.DepthTexture(
-      window.innerWidth,
-      window.innerHeight
-    );
+    // Composer — let EffectComposer create its own render targets so
+    // setSize() applies DPR correctly without double-multiplication.
+    this.composer = new EffectComposer(this.renderer);
+
+    // Attach depth textures to BOTH ping-pong render targets so the
+    // depth buffer is available regardless of which target is the readBuffer.
+    this.renderTarget = this.composer.renderTarget1;
+    const rt1 = this.composer.renderTarget1;
+    const rt2 = this.composer.renderTarget2;
+
+    this.depthTexture = new THREE.DepthTexture(rt1.width, rt1.height);
     this.depthTexture.format = THREE.DepthFormat;
     this.depthTexture.type = THREE.UnsignedIntType;
+    rt1.depthTexture = this.depthTexture;
 
-    this.renderTarget = new THREE.WebGLRenderTarget(
-      window.innerWidth,
-      window.innerHeight,
-      {
-        minFilter: THREE.NearestFilter,
-        magFilter: THREE.NearestFilter,
-        depthTexture: this.depthTexture,
-      }
-    );
-
-    // Composer
-    this.composer = new EffectComposer(this.renderer, this.renderTarget);
+    const depthTexture2 = new THREE.DepthTexture(rt2.width, rt2.height);
+    depthTexture2.format = THREE.DepthFormat;
+    depthTexture2.type = THREE.UnsignedIntType;
+    rt2.depthTexture = depthTexture2;
     const renderPass = new RenderPass(this.scene, this.camera);
     this.composer.addPass(renderPass);
 

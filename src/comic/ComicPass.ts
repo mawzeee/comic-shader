@@ -15,10 +15,11 @@ export class ComicPass extends Pass {
     this.scene = scene;
     this.camera = camera;
 
-    // Normal buffer render target
+    // Normal buffer render target (sized at device pixels for sharp outlines)
+    const dpr = Math.min(window.devicePixelRatio, 2);
     this.normalRenderTarget = new THREE.WebGLRenderTarget(
-      window.innerWidth,
-      window.innerHeight,
+      Math.floor(window.innerWidth * dpr),
+      Math.floor(window.innerHeight * dpr),
       {
         minFilter: THREE.NearestFilter,
         magFilter: THREE.NearestFilter,

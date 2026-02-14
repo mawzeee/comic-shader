@@ -151,7 +151,9 @@ float halftonePattern(vec2 fc, float grid, float ang, float rad) {
   float sa = sin(ang);
   vec2 r = vec2(fc.x * ca - fc.y * sa, fc.x * sa + fc.y * ca);
   vec2 cell = mod(r, grid) - grid * 0.5;
-  return 1.0 - smoothstep(rad - 1.0, rad + 1.0, length(cell));
+  float d = length(cell);
+  float aa = fwidth(d) * 1.5;
+  return 1.0 - smoothstep(rad - aa, rad + aa, d);
 }
 
 // ─── Color conversion ────────────────────────────────
@@ -332,8 +334,12 @@ vec3 applyStyle(vec2 baseUv, vec2 texel, Style s) {
 
     ne = min(ne, 3.0);
     // Separate edges: depth = silhouette (thick), normal = crease (thin)
-    float silhouette = smoothstep(s.outlineThreshold, s.outlineThreshold + 0.4, de * 1.2);
-    float crease = smoothstep(s.outlineThreshold + 0.1, s.outlineThreshold + 0.6, ne * 0.25);
+    float deScaled = de * 1.2;
+    float neScaled = ne * 0.25;
+    float silhouetteAA = fwidth(deScaled) * 1.5;
+    float creaseAA = fwidth(neScaled) * 1.5;
+    float silhouette = smoothstep(s.outlineThreshold - silhouetteAA, s.outlineThreshold + silhouetteAA, deScaled);
+    float crease = smoothstep(s.outlineThreshold + 0.1 - creaseAA, s.outlineThreshold + 0.1 + creaseAA, neScaled);
 
     // Ink pooling: where both silhouette + crease are strong, add extra weight
     float pooling = smoothstep(0.1, 0.6, silhouette * crease) * 0.5;
@@ -348,8 +354,9 @@ vec3 applyStyle(vec2 baseUv, vec2 texel, Style s) {
     variableEdge = clamp(variableEdge, 0.0, 1.0);
 
     // Uniform edge fallback
-    float uniformEdge = max(ne * 0.25, de * 1.2);
-    uniformEdge = smoothstep(s.outlineThreshold, s.outlineThreshold + 0.5, uniformEdge);
+    float uniformEdgeVal = max(ne * 0.25, de * 1.2);
+    float uniformAA = fwidth(uniformEdgeVal) * 1.5;
+    float uniformEdge = smoothstep(s.outlineThreshold - uniformAA, s.outlineThreshold + uniformAA, uniformEdgeVal);
 
     // Blend between uniform and variable
     float edge = mix(uniformEdge, variableEdge, s.outlineVariation);
