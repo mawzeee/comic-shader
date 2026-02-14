@@ -1,6 +1,5 @@
 # Dependencies
 node_modules/
-package-lock.json
 
 # Build outputs
 dist/
@@ -37,3 +36,6 @@ yarn-error.log*
 # Temporary files
 *.tmp
 *.temp
+
+# Local Netlify folder
+.netlify

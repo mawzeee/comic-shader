@@ -14,14 +14,32 @@ Built with [Three.js](https://threejs.org/) and WebGL 2.
 - **Two demo scenes**: geometric shapes and a DamagedHelmet GLB model
 - **Fully responsive** with mobile/tablet support and Safari safe area handling
 
-## Installation
+## Getting Started
+
+### Prerequisites
+
+- **Node.js** 18 or later
+- A browser with **WebGL 2** support (Chrome, Firefox, Safari 15+, Edge)
+
+### Install & Run
 
 ```bash
+git clone https://github.com/mawzeee/comic-shader.git
+cd comic-shader
 npm install
 npm run dev
 ```
 
-Opens at [http://localhost:5173](http://localhost:5173). Requires Node.js 18+.
+Opens at [http://localhost:5173](http://localhost:5173).
+
+### Production Build
+
+```bash
+npm run build
+npm run preview   # preview the build locally
+```
+
+The output is written to `dist/` — deploy that folder to any static host.
 
 ## Project Structure
 
@@ -36,7 +54,12 @@ src/
     Engine.ts        — Renderer, camera, controls, composer, resize handling
   main.ts            — Entry point: presets, UI, animations, render loop
   style.css          — Styling + responsive breakpoints
+public/
+  fonts/             — Bangers, PP Right Grotesk (bundled)
+  models/            — DamagedHelmet.glb
 ```
+
+Fonts **Inter** and **JetBrains Mono** are loaded from Google Fonts at runtime.
 
 ## How It Works
 
