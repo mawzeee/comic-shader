@@ -172,7 +172,7 @@ const presets: Preset[] = [
     name: 'Noir',
     values: {
       uOutlineThickness: 1.5, uOutlineThreshold: 0.3,
-      uCelBands: 3, uHalftoneSize: 4, uHalftoneAngle: 0.78,
+      uCelBands: 4, uHalftoneSize: 4, uHalftoneAngle: 0.78,
       uSaturationBoost: -0.85, uWobbleAmount: 3.0, uWobbleFreq: 8,
       uCmykOffset: 0, uPaperStrength: 0.6,
       uEnableOutlines: 1, uEnableCelShading: 1, uEnableHalftone: 1,
@@ -181,15 +181,15 @@ const presets: Preset[] = [
       uRimStrength: 0.6, uRimThreshold: 0.55, uColorPunch: 0.0,
     },
     colors: {
-      background: 0x252030,
-      ground: 0x201820,
-      fog: 0x201828,
+      background: 0x302830,
+      ground: 0x605858,
+      fog: 0x282030,
       fogDensity: 0.035,
     },
     helmetColors: {
-      background: 0x04060a,
-      ground: 0x060a12,
-      fog: 0x030508,
+      background: 0x080a10,
+      ground: 0x383038,
+      fog: 0x060810,
       fogDensity: 0.040,
     },
     ui: {

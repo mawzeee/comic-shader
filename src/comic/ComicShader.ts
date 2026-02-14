@@ -239,7 +239,11 @@ vec3 applyStyle(vec2 baseUv, vec2 texel, Style s) {
     float topBand = (bands - 0.5) / bands;
     // Detect specular: luma above top band boundary
     float specular = smoothstep(topBand - 0.05, topBand + 0.05, l);
-    float qv = (floor(l * bands) + 0.5) / bands;
+    // Soften band transitions so halftone dots don't jump abruptly at boundaries
+    float bandId = l * bands;
+    float t = fract(bandId);
+    float softBand = floor(bandId) + smoothstep(0.42, 0.58, t);
+    float qv = (softBand + 0.5) / bands;
     qv = 0.12 + qv * 0.88;
     float sc = qv / max(l, 0.001);
     color = clamp(color * sc, 0.0, 1.0);
@@ -370,7 +374,7 @@ vec3 applyStyle(vec2 baseUv, vec2 texel, Style s) {
   if (s.enableCmyk > 0.5) {
     float px = s.cmykOffset * texel.x;
     float py = s.cmykOffset * texel.y;
-    float drift = sin(uTime * 1.5) * 0.3 + 0.7;
+    float drift = 0.85;
     vec2 cOff = vec2( px * 0.7,  py * 1.0) * drift;
     vec2 mOff = vec2(-px * 1.0,  py * 0.5) * drift;
     vec2 yOff = vec2( px * 0.3, -py * 0.8) * drift;

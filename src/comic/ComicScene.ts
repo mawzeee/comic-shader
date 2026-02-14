@@ -122,8 +122,8 @@ export class ComicScene {
   }
 
   private createLights() {
-    // Key light — dramatic
-    const dirLight = new THREE.DirectionalLight(0xfff5e0, 3.0);
+    // Key light — dramatic, casts the main shadows
+    const dirLight = new THREE.DirectionalLight(0xfff5e0, 3.5);
     dirLight.position.set(5, 10, 4);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 2048;
@@ -137,12 +137,12 @@ export class ComicScene {
     dirLight.shadow.bias = -0.001;
     this.group.add(dirLight);
 
-    // Strong ambient — comics are bright, shadows still have color
-    const ambientLight = new THREE.AmbientLight(0xd0d4e8, 2.2);
+    // Ambient — low enough that shadows read clearly
+    const ambientLight = new THREE.AmbientLight(0xd0d4e8, 1.0);
     this.group.add(ambientLight);
 
-    // Fill light — from opposite side to soften shadows
-    const fillLight = new THREE.DirectionalLight(0xb0c0e0, 1.8);
+    // Fill light — gentle, doesn't wash out shadows
+    const fillLight = new THREE.DirectionalLight(0xb0c0e0, 0.6);
     fillLight.position.set(-5, 6, -3);
     this.group.add(fillLight);
 

@@ -67,14 +67,14 @@ export class HelmetScene {
     dirLight.shadow.bias = -0.001;
     this.group.add(dirLight);
 
-    const ambientLight = new THREE.AmbientLight(0xd0d4e8, 4.0);
+    const ambientLight = new THREE.AmbientLight(0xd0d4e8, 1.5);
     this.group.add(ambientLight);
 
-    const fillLight = new THREE.DirectionalLight(0xb0c0e0, 3.5);
+    const fillLight = new THREE.DirectionalLight(0xb0c0e0, 0.8);
     fillLight.position.set(-5, 6, -3);
     this.group.add(fillLight);
 
-    const rimLight = new THREE.DirectionalLight(0xffe8d0, 2.0);
+    const rimLight = new THREE.DirectionalLight(0xffe8d0, 1.2);
     rimLight.position.set(-2, 3, -6);
     this.group.add(rimLight);
   }
