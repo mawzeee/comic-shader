@@ -5,7 +5,22 @@ import { HelmetScene } from './comic/HelmetScene';
 import { ComicPass } from './comic/ComicPass';
 import GUI from 'lil-gui';
 
+// ─── WebGL support check ─────────────────────────────
+
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+
+if (!canvas.getContext('webgl2')) {
+  document.body.classList.remove('loading');
+  const fallback = document.createElement('div');
+  fallback.className = 'no-webgl';
+  fallback.innerHTML = '<p>Your browser does not support WebGL 2, which is required for this demo.<br>Please try a recent version of Chrome, Firefox, or Safari.</p>';
+  document.body.appendChild(fallback);
+  throw new Error('WebGL 2 not supported');
+}
+
+// ─── Reduced motion preference ───────────────────────
+
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const engine = new Engine(canvas);
 const comicScene = new ComicScene(engine.scene);
@@ -449,6 +464,8 @@ function applyPresetUI(ui: PresetUI, animate: boolean) {
 let presetAnimationId: number | null = null;
 
 function applyPreset(preset: Preset, animate = true) {
+  if (prefersReducedMotion) animate = false;
+
   // Cancel any in-flight preset animation
   if (presetAnimationId !== null) {
     cancelAnimationFrame(presetAnimationId);
@@ -546,10 +563,17 @@ presets.forEach((preset, i) => {
   const btn = document.createElement('button');
   btn.className = 'preset-btn' + (i === 0 ? ' active' : '');
   btn.textContent = preset.name;
+  btn.setAttribute('role', 'tab');
+  btn.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
+  btn.setAttribute('aria-label', `${preset.name} preset`);
 
   btn.addEventListener('click', () => {
-    if (activeBtn) activeBtn.classList.remove('active');
+    if (activeBtn) {
+      activeBtn.classList.remove('active');
+      activeBtn.setAttribute('aria-selected', 'false');
+    }
     btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
     activeBtn = btn;
     activePresetIndex = i;
     applyPreset(preset);
@@ -617,6 +641,8 @@ const gui = new GUI({ title: 'Controls' });
 const guiToggle = document.createElement('button');
 guiToggle.id = 'gui-toggle';
 guiToggle.innerHTML = '&#9881; CONTROLS';
+guiToggle.setAttribute('aria-label', 'Toggle shader controls panel');
+guiToggle.setAttribute('aria-expanded', 'false');
 document.getElementById('overlay')!.appendChild(guiToggle);
 
 // Start hidden
@@ -627,6 +653,7 @@ guiToggle.addEventListener('click', () => {
   guiVisible = !guiVisible;
   gui.domElement.classList.toggle('gui-hidden', !guiVisible);
   guiToggle.classList.toggle('active', guiVisible);
+  guiToggle.setAttribute('aria-expanded', String(guiVisible));
 });
 
 const guiControllers: Record<string, ReturnType<typeof gui.add>> = {};
@@ -761,19 +788,30 @@ applyPresetColors(presets[0], false);
 const flash = document.getElementById('flash')!;
 
 // After a brief moment, reveal the comic effect
-setTimeout(() => {
-  flash.classList.add('visible');
-  setTimeout(() => {
-    applyPreset(presets[0], false);
-    applyPresetUI(presets[0].ui, false);
-    updateGuiFromUniforms();
-    setLensPreset(presets[contrastMap[0]]);
-    flash.classList.remove('visible');
+document.body.classList.remove('loading');
 
-    // Capture thumbnails once the scene is revealed
-    setTimeout(() => capturePreviewThumbnails(), 800);
-  }, 300);
-}, 1200);
+if (prefersReducedMotion) {
+  // Skip reveal animation — apply immediately
+  applyPreset(presets[0], false);
+  applyPresetUI(presets[0].ui, false);
+  updateGuiFromUniforms();
+  setLensPreset(presets[contrastMap[0]]);
+  setTimeout(() => capturePreviewThumbnails(), 400);
+} else {
+  setTimeout(() => {
+    flash.classList.add('visible');
+    setTimeout(() => {
+      applyPreset(presets[0], false);
+      applyPresetUI(presets[0].ui, false);
+      updateGuiFromUniforms();
+      setLensPreset(presets[contrastMap[0]]);
+      flash.classList.remove('visible');
+
+      // Capture thumbnails once the scene is revealed
+      setTimeout(() => capturePreviewThumbnails(), 800);
+    }, 300);
+  }, 1200);
+}
 
 // ─── Scene switcher ─────────────────────────────────
 
@@ -799,6 +837,7 @@ sceneNames.forEach((name, i) => {
   const btn = document.createElement('button');
   btn.className = 'lens-btn' + (i === 0 ? ' active' : '');
   btn.textContent = name;
+  btn.setAttribute('aria-label', `Switch to ${name} scene`);
   btn.addEventListener('click', () => switchScene(i));
   sceneContainer.appendChild(btn);
   sceneBtns.push(btn);
@@ -909,8 +948,10 @@ engine.controls.addEventListener('end', () => {
 // ─── Render loop ─────────────────────────────────────
 
 engine.start((dt) => {
-  comicScene.update(dt);
-  helmetScene.update(dt);
+  if (!prefersReducedMotion) {
+    comicScene.update(dt);
+    helmetScene.update(dt);
+  }
   const safeDt = Math.min(Math.max(dt, 0.001), 0.05);
 
   // ── Camera readout ──
@@ -996,9 +1037,9 @@ engine.start((dt) => {
     engine.camera.lookAt(0, 1.5, 0);
   }
 
-  // ── Disable wobble on helmet scene ──
+  // ── Disable wobble on helmet scene or reduced motion ──
   const presetWobble = presets[activePresetIndex].values.uWobbleAmount ?? 0;
-  u.uWobbleAmount.value = activeScene === 1 ? 0 : presetWobble;
+  u.uWobbleAmount.value = (activeScene === 1 || prefersReducedMotion) ? 0 : presetWobble;
 
   // ── Render ──
   if (comparing) {

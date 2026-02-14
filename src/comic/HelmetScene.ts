@@ -203,25 +203,32 @@ export class HelmetScene {
 
   private loadHelmet() {
     const loader = new GLTFLoader();
-    loader.load('/models/DamagedHelmet.glb', (gltf) => {
-      const model = gltf.scene;
-      model.position.set(0, 2.2, 0);
-      model.scale.setScalar(1.5);
-      model.rotation.x = Math.PI * 0.05;
-      model.traverse((child) => {
-        if ((child as THREE.Mesh).isMesh) {
-          child.castShadow = true;
-          child.receiveShadow = true;
-          const mat = (child as THREE.Mesh).material as THREE.MeshStandardMaterial;
-          if (mat.isMeshStandardMaterial) {
-            mat.metalness = Math.min(mat.metalness, 0.3);
-            mat.roughness = Math.max(mat.roughness, 0.5);
+    loader.load(
+      '/models/DamagedHelmet.glb',
+      (gltf) => {
+        const model = gltf.scene;
+        model.position.set(0, 2.2, 0);
+        model.scale.setScalar(1.5);
+        model.rotation.x = Math.PI * 0.05;
+        model.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+            const mat = (child as THREE.Mesh).material as THREE.MeshStandardMaterial;
+            if (mat.isMeshStandardMaterial) {
+              mat.metalness = Math.min(mat.metalness, 0.3);
+              mat.roughness = Math.max(mat.roughness, 0.5);
+            }
           }
-        }
-      });
-      this.group.add(model);
-      this.helmet = model;
-    });
+        });
+        this.group.add(model);
+        this.helmet = model;
+      },
+      undefined,
+      (err) => {
+        console.warn('Failed to load DamagedHelmet.glb:', err);
+      }
+    );
   }
 
   /** Derive all environment colors from groundMat so everything shifts with presets */

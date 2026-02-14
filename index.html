@@ -1,19 +1,54 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="no-js">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Comic Book Shader — Three.js Post-Processing</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Comic Book Shader | Codrops</title>
+    <meta name="description" content="A real-time post-processing shader that transforms 3D scenes into comic book art — cel shading, Ben-Day halftone, CMYK misregistration, and hand-drawn line wobble in a single GLSL pass." />
+    <meta name="keywords" content="three.js, webgl, shader, comic book, post-processing, halftone, cel shading, glsl, codrops" />
+    <meta name="author" content="Codrops" />
+    <meta name="theme-color" content="#c41e2a" />
+    <meta name="color-scheme" content="dark light" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Comic Book Shader | Codrops" />
+    <meta property="og:description" content="Real-time post-processing combining cel shading, Ben-Day halftone, CMYK misregistration, and hand-drawn line wobble." />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Codrops" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Comic Book Shader | Codrops" />
+    <meta name="twitter:description" content="Real-time post-processing combining cel shading, halftone, and hand-drawn line wobble." />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Font preloads (critical rendering path) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" href="/fonts/Bangers-Regular.ttf" as="font" type="font/ttf" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
     <link rel="stylesheet" href="/src/style.css" />
+    <script>document.documentElement.className = 'js';</script>
   </head>
-  <body>
-    <canvas id="canvas"></canvas>
+  <body class="loading">
+    <canvas id="canvas" role="img" aria-label="3D scene with comic book post-processing shader effects">
+      <p>This demo requires a browser with WebGL 2 support.</p>
+    </canvas>
+
+    <noscript>
+      <div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#1a1a1a;color:#fff;font-family:sans-serif;text-align:center;padding:2rem;">
+        <p>This demo requires JavaScript to run.<br>Please enable JavaScript and reload the page.</p>
+      </div>
+    </noscript>
 
     <div id="flash"></div>
 
-    <div id="overlay">
+    <div id="overlay" role="region" aria-label="Demo controls">
       <!-- Masthead banner -->
-      <div id="masthead">
+      <div id="masthead" role="banner">
         <div class="masthead-left">
           <span class="masthead-issue">No.01</span>
           <span class="masthead-date">FEB 2026</span>
@@ -23,7 +58,7 @@
       </div>
 
       <!-- CCA-style seal -->
-      <div id="seal">
+      <div id="seal" aria-hidden="true">
         <div class="seal-inner">
           <span class="seal-top">APPROVED BY THE</span>
           <span class="seal-mid">SHADER</span>
@@ -32,13 +67,13 @@
       </div>
 
       <!-- Caption box (comic narrator style) -->
-      <div id="caption">
+      <div id="caption" role="note">
         <p>Real-time post-processing combining cel shading, Ben-Day halftone, CMYK misregistration, and hand-drawn line wobble.</p>
       </div>
 
       <!-- Controls -->
-      <div id="presets"></div>
-      <div id="compare">COMPARE <span class="key-hint">SPACE</span></div>
+      <div id="presets" role="tablist" aria-label="Shader presets"></div>
+      <button id="compare" aria-label="Hold to compare with raw 3D">COMPARE <span class="key-hint">SPACE</span></button>
       <div id="credits"><a href="#">Three.js &middot; WebGL 2</a></div>
     </div>
 
