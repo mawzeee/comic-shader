@@ -61,28 +61,134 @@ canvas#canvas {
 
 /* ─── Loading screen ─── */
 
-.loading #overlay,
-.loading #flash {
-  display: none;
+.loading #overlay, .loading #flash {
+  opacity: 0;
+  pointer-events: none;
 }
 
-.loading::after {
-  content: '';
+/* ─── Loader overlay ─── */
+
+#loader {
   position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 15;
+  pointer-events: none;
+  background: #1a1a1a;
+  overflow: hidden;
+  transition: opacity 0.6s ease;
+}
+
+#loader.hidden {
+  opacity: 0;
+}
+
+/* Radiating speed lines — slow continuous rotation */
+.loader-burst {
+  position: absolute;
+  width: 200vmax;
+  height: 200vmax;
   top: 50%;
   left: 50%;
-  width: 40px;
-  height: 40px;
-  margin: -20px 0 0 -20px;
-  border: 3px solid rgba(255, 255, 255, 0.15);
-  border-top-color: #c41e2a;
-  border-radius: 50%;
-  animation: loaderSpin 0.7s linear infinite;
-  z-index: 10000;
+  background: repeating-conic-gradient(
+    rgba(255,255,255,0.035) 0deg 1.5deg,
+    transparent 1.5deg 8deg
+  );
+  animation: burstSpin 60s linear infinite;
 }
 
-@keyframes loaderSpin {
-  to { transform: rotate(360deg); }
+@keyframes burstSpin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Halftone dot grid texture */
+#loader::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Breathing red glow behind title */
+#loader::after {
+  content: '';
+  position: absolute;
+  width: 70vw;
+  height: 50vh;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(ellipse, rgba(196, 30, 42, 0.12), transparent 70%);
+  animation: glowPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* Title — entrance animation + exit transition */
+.loader-title {
+  font-family: 'Bangers', cursive;
+  font-size: clamp(64px, 14vw, 140px);
+  color: #fff;
+  letter-spacing: 8px;
+  text-shadow:
+    4px 4px 0 #c41e2a,
+    8px 8px 0 rgba(0,0,0,0.25);
+  line-height: 1;
+  z-index: 1;
+  /* Base = final resting state */
+  opacity: 1;
+  transform: rotate(-2deg);
+  /* Entrance: rise in from below */
+  animation: titleIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s backwards;
+  /* Exit: slide up + fade */
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.6s ease;
+}
+
+@keyframes titleIn {
+  from { opacity: 0; transform: rotate(-2deg) translateY(20px); }
+}
+
+/* Subtitle — delayed entrance + exit transition */
+.loader-subtitle {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(11px, 2vw, 16px);
+  letter-spacing: 12px;
+  text-transform: uppercase;
+  margin-top: 16px;
+  z-index: 1;
+  /* Base = final resting state */
+  opacity: 0.45;
+  transform: translateY(0);
+  color: #fff;
+  /* Entrance: delayed rise */
+  animation: subtitleIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.45s backwards;
+  /* Exit: slide up + fade */
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.05s,
+              opacity 0.5s ease 0.05s;
+}
+
+@keyframes subtitleIn {
+  from { opacity: 0; transform: translateY(10px); }
+}
+
+/* Exit states */
+#loader.hidden .loader-title {
+  transform: translateY(-40px) rotate(-2deg) scale(0.95);
+  opacity: 0;
+}
+
+#loader.hidden .loader-subtitle {
+  transform: translateY(-30px);
+  opacity: 0;
 }
 
 /* ─── WebGL fallback ─── */
@@ -835,6 +941,13 @@ canvas#canvas {
   }
   #flash {
     transition: none;
+  }
+  #loader, .loader-burst, .loader-title, .loader-subtitle {
+    transition: none;
+    animation: none;
+  }
+  #loader::after {
+    animation: none;
   }
   .preset-btn {
     transition: none;

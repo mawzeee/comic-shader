@@ -795,31 +795,35 @@ for (const [key, val] of Object.entries(rawValues)) {
 applyPresetColors(presets[0], false);
 
 const flash = document.getElementById('flash')!;
-
-// After a brief moment, reveal the comic effect
-document.body.classList.remove('loading');
+const loader = document.getElementById('loader');
 
 if (prefersReducedMotion) {
-  // Skip reveal animation — apply immediately
+  document.body.classList.remove('loading');
+  if (loader) loader.classList.add('hidden');
   applyPreset(presets[0], false);
   applyPresetUI(presets[0].ui, false);
   updateGuiFromUniforms();
   setLensPreset(presets[contrastMap[0]]);
   setTimeout(() => capturePreviewThumbnails(), 400);
 } else {
+  // Scene renders behind opaque loader while entrance animations play
   setTimeout(() => {
-    flash.classList.add('visible');
-    setTimeout(() => {
-      applyPreset(presets[0], false);
-      applyPresetUI(presets[0].ui, false);
-      updateGuiFromUniforms();
-      setLensPreset(presets[contrastMap[0]]);
-      flash.classList.remove('visible');
+    // Apply effects while loader still covers everything
+    applyPreset(presets[0], false);
+    applyPresetUI(presets[0].ui, false);
+    updateGuiFromUniforms();
+    setLensPreset(presets[contrastMap[0]]);
+    document.body.classList.remove('loading');
 
-      // Capture thumbnails once the scene is revealed
+    // Fade out loader + fire flash simultaneously
+    if (loader) loader.classList.add('hidden');
+    flash.classList.add('visible');
+
+    setTimeout(() => {
+      flash.classList.remove('visible');
       setTimeout(() => capturePreviewThumbnails(), 800);
     }, 300);
-  }, 1200);
+  }, 800);
 }
 
 // ─── Scene switcher ─────────────────────────────────
@@ -1031,7 +1035,9 @@ engine.start((dt) => {
     const angle = baseAngle + Math.sin(t * (isHelmet ? 0.25 : 0.08)) * swayAmount
                             + Math.sin(t * (isHelmet ? 0.09 : 0.031)) * swayAmount * 0.3;
 
-    const radius = isHelmet ? 8.61 : 8.5;
+    const vw = window.innerWidth;
+    const zoomOut = vw < 480 ? 1.35 : vw < 768 ? 1.15 : 1;
+    const radius = (isHelmet ? 8.61 : 8.5) * zoomOut;
     const targetX = Math.sin(angle) * radius;
     const targetZ = Math.cos(angle) * radius;
     const baseY = isHelmet ? 2.57 : 3.8;
