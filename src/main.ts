@@ -845,7 +845,7 @@ if (prefersReducedMotion) {
 
 // ─── Scene switcher ─────────────────────────────────
 
-const sceneNames = ['SHAPES', 'HELMET'];
+const sceneNames = ['GEOMETRY', '3D MODEL'];
 
 const sceneContainer = document.createElement('div');
 sceneContainer.id = 'lens-modes';
